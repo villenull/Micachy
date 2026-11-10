@@ -56,6 +56,20 @@ FPS = 30
 MISSING_ZONE_GRACE = 20.0
 MISSING_ZONE_POLL = 4.0
 
+#: How often a running daemon looks again for a zone that was still missing
+#: when the grace window closed.
+#:
+#: The window covers a controller that is slow at boot, but not one that
+#: becomes reachable later for a reason outside the hardware: the board's
+#: hidraw node is root-only until the udev rule is installed, and the rule is
+#: usually installed *after* the panel has already started this daemon. That
+#: daemon gave up on the CPU fans and rendered only the card until someone
+#: restarted it, so the panel's colour changes never reached the fans. Looking
+#: again on a slow cadence fixes that without a restart. Each look is the same
+#: open the startup window makes every few seconds, so this costs nothing new,
+#: and it stops once every configured zone is present.
+MISSING_ZONE_RECHECK = 15.0
+
 #: How often a frame identical to the last one sent is re-sent anyway.
 #:
 #: Measured on the reference rig: the daemon costs about 4 % of one core while
@@ -266,6 +280,28 @@ def settle_zones(config: Config, connect, *, grace: float = MISSING_ZONE_GRACE,
         if not missing or clock() >= deadline:
             return rgb, zones, missing
         sleep(poll)
+
+
+def recheck_missing(config: Config, connect, missing: list[str]):
+    """Open the controllers once more; return the new connection only if it
+    now answers for a zone that was missing, else None.
+
+    A look that finds nothing new closes what it opened and changes nothing, so
+    the daemon keeps its working handles. A look that fails outright (no
+    controller answered) is treated the same way: the zones that were already
+    lit keep running on the connection that lights them.
+    """
+    try:
+        fresh = connect()
+    except RGBError:
+        return None
+    found = {z.key for z in fresh.list_zones()}
+    if found & set(missing):
+        return fresh
+    close = getattr(fresh, "close", None)
+    if close is not None:
+        close()
+    return None
 
 
 def report_detection(rgb, config: Config, zones: dict[str, int]) -> detection.Detection:
@@ -519,10 +555,30 @@ def main() -> None:
 
     watch = WriteFailureWatch()
     period = 1.0 / max(args.fps, 1.0)
+    last_recheck = 0.0
 
     while not stopping:
         frame_start = time.monotonic()
         t = frame_start - start
+
+        # A zone that turned up after startup (see MISSING_ZONE_RECHECK) gets a
+        # whole new connection, and with it everything the daemon remembers
+        # about modes and sent frames, since that memory described the old one.
+        if missing and t - last_recheck >= MISSING_ZONE_RECHECK:
+            last_recheck = t
+            fresh = recheck_missing(config, lambda: RGBController(config), missing)
+            if fresh is not None:
+                rgb.close()
+                rgb = fresh
+                zones = {z.key: z.led_count for z in rgb.list_zones()}
+                missing = missing_zones(config, zones)
+                detection.save(report_detection(rgb, config, zones))
+                print(f"zones now detected: {', '.join(zones)}", file=sys.stderr)
+                gate = FrameGate()
+                applied = {}
+                transitions = TransitionWatch()
+                last_rotation = rotation(zones, state, t)
+                rendered, firmware = plan(rgb, zones, state, t)
 
         # Re-read only when the file actually changed, but also re-plan when
         # Unhinged's firmware rotation moves on — that one is driven by the clock

@@ -153,4 +153,4 @@ def test_versions_move_together():
     manifest = json.loads((REPO / "manifest.json").read_text())
     pyproject = (REPO / "pyproject.toml").read_text()
     version = re.search(r'^version = "([^"]+)"', pyproject, re.M).group(1)
-    assert manifest["version"] == version == "0.6.0"
+    assert manifest["version"] == version == "0.6.1"

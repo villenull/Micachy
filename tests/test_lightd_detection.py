@@ -24,8 +24,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from mimarchy import detection  # noqa: E402
 from mimarchy.config import Config, RGBZoneConfig  # noqa: E402
 from mimarchy.lightd import (describe_missing, missing_zones,  # noqa: E402
-                             report_detection, settle_zones)
-from mimarchy.rgb import ZoneInfo  # noqa: E402
+                             recheck_missing, report_detection, settle_zones)
+from mimarchy.rgb import RGBError, ZoneInfo  # noqa: E402
 
 
 def _config() -> Config:
@@ -44,9 +44,13 @@ CARD = ZoneInfo(key="gpu", label="gpu",
 class FakeRGB:
     def __init__(self, zones):
         self._zones = list(zones)
+        self.closed = False
 
     def list_zones(self):
         return self._zones
+
+    def close(self):
+        self.closed = True
 
 
 class FakeClock:
@@ -140,3 +144,26 @@ def test_the_report_names_found_and_missing_zones(tmp_path) -> None:
 
 def test_no_report_reads_as_unknown_not_as_fine(tmp_path) -> None:
     assert detection.load(tmp_path / "never-written.json") is None
+
+
+def test_a_zone_that_appears_after_the_window_is_picked_up() -> None:
+    """The udev rule installed after the daemon started: the board answers a
+    later look, and the daemon gets a connection that includes it."""
+    fresh = FakeRGB([BOARD, CARD])
+    assert recheck_missing(_config(), lambda: fresh, ["cpu_fans"]) is fresh
+    assert not fresh.closed
+
+
+def test_a_look_that_finds_nothing_new_changes_nothing() -> None:
+    """The extra connection is closed and the daemon keeps the one that
+    lights the zones it already has."""
+    fresh = FakeRGB([CARD])
+    assert recheck_missing(_config(), lambda: fresh, ["cpu_fans"]) is None
+    assert fresh.closed
+
+
+def test_a_look_where_nothing_answers_is_not_fatal() -> None:
+    def connect():
+        raise RGBError("no lighting controller answered")
+
+    assert recheck_missing(_config(), connect, ["cpu_fans"]) is None
