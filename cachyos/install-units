@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Install Mimarchy's two daemons as systemd *user* services, for desktops
+# without the Omarchy panel to supervise them (KDE Plasma on CachyOS).
+#
+# Why units here when Omarchy has none: on Omarchy the bar panel spawns
+# mimarchy-lightd and keeps it alive. Plasma has no such panel (yet), so
+# systemd --user takes that role. The units point at this checkout's real
+# path, so they run the backend that sits next to this script.
+#
+# Restart=on-failure, not always: both daemons exit 0 on SIGTERM, which is
+# how `mimarchy-ctl display off` stops the display stream — `always` would
+# undo that. Fatal exits (device missing, udev rule absent) are non-zero and
+# get retried, so the LEDs come up on their own once the rule lands.
+#
+# Usage: cachyos/install-units [--uninstall] [--no-display]
+set -euo pipefail
+
+repo="$(cd "$(dirname "$(realpath "$0")")/.." && pwd)"
+unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+units=(mimarchy-lightd mimarchy-displayd)
+
+if [[ "${1:-}" == "--uninstall" ]]; then
+    systemctl --user disable --now "${units[@]/%/.service}" 2>/dev/null || true
+    for u in "${units[@]}"; do rm -f "$unit_dir/$u.service"; done
+    systemctl --user daemon-reload
+    echo "removed ${units[*]}"
+    exit 0
+fi
+
+mkdir -p "$unit_dir"
+for u in "${units[@]}"; do
+    case "$u" in
+        mimarchy-lightd)   desc="Mimarchy ARGB lighting daemon" ;;
+        mimarchy-displayd) desc="Mimarchy cooler display stream" ;;
+    esac
+    cat > "$unit_dir/$u.service" <<UNIT
+[Unit]
+Description=$desc
+Documentation=file://$repo/README.md
+StartLimitIntervalSec=300
+StartLimitBurst=20
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -I -S $repo/bin/$u
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
+UNIT
+done
+
+systemctl --user daemon-reload
+systemctl --user enable --now mimarchy-lightd.service
+if [[ "${1:-}" != "--no-display" ]]; then
+    systemctl --user enable --now mimarchy-displayd.service
+fi
+systemctl --user --no-pager status "${units[@]/%/.service}" | grep -E '●|Active:' || true
