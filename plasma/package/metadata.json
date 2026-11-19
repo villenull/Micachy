@@ -1,0 +1,19 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Diego Huyke"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "ARGB lighting and cooler display control",
+        "Icon": "redshift-status-on",
+        "Id": "io.github.villenull.micachy",
+        "License": "MIT",
+        "Name": "Micachy",
+        "Version": "0.6.1",
+        "Website": "https://github.com/villenull/micachy"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

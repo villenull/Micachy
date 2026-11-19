@@ -1,8 +1,8 @@
 # Micachy on CachyOS / KDE Plasma
 
 This branch runs Micachy outside Omarchy. Step 1 (this folder) gets the
-lighting and cooler display working with the CLI only; a Plasma widget and
-KDE theme colours come later.
+lighting and cooler display working from the CLI and a panel applet; KDE
+theme colours come later.
 
 ## 1. udev rule (once, needs root)
 
@@ -63,3 +63,22 @@ Logs: `journalctl --user -u micachy-lightd -f`.
 
 Bind these to KDE global shortcuts (System Settings → Keyboard → Shortcuts →
 Add New → Command) for keyboard control.
+
+## 5. Panel applet
+
+```bash
+cachyos/install-applet              # install or upgrade
+cachyos/install-applet --uninstall
+```
+
+Then right-click the panel → Add or Manage Widgets → Micachy. Clicking the
+bulb opens the same controls as the Omarchy panel: link, effect, colour and
+speed per zone, and the cooler display. The bulb is unlit when the lights are
+off or the lighting daemon is stopped; middle-click links and unlinks.
+
+The installer writes this checkout's path into the installed copy, so run it
+again if the checkout moves. After an upgrade Plasma keeps showing the old
+version until it restarts (`systemctl --user restart plasma-plasmashell`).
+
+The applet polls rather than watches: a change made from a shortcut or a
+terminal shows up within two seconds while the popup is open.

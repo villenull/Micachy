@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Install Micachy's Plasma applet (plasma/package) for the current user.
+#
+# Why a script rather than a bare `kpackagetool6 -i plasma/package`:
+# kpackagetool copies the package into ~/.local/share/plasma/plasmoids, and
+# from there the applet has no way to find this checkout's bin/. So this
+# stages a copy, writes the checkout's real path into its backend.js, and
+# installs that. Move the checkout and the applet says its backend failed
+# until this is run again.
+#
+# Usage: cachyos/install-applet [--uninstall]
+set -euo pipefail
+
+repo="$(cd "$(dirname "$(realpath "$0")")/.." && pwd)"
+id="io.github.villenull.micachy"
+
+if [[ "${1:-}" == "--uninstall" ]]; then
+    kpackagetool6 -t Plasma/Applet -r "$id"
+    exit 0
+fi
+
+stage="$(mktemp -d)"
+trap 'rm -rf "$stage"' EXIT
+cp -r "$repo/plasma/package" "$stage/$id"
+
+# The path is written as a JSON string, which is also a valid JavaScript
+# one, so a checkout path with quotes or backslashes in it cannot break out.
+/usr/bin/python3 -I -S - "$repo/bin" "$stage/$id/contents/ui/backend.js" <<'PY'
+import json, sys
+bin_dir, target = sys.argv[1], sys.argv[2]
+with open(target, "w") as f:
+    f.write(".pragma library\n\n"
+            "// Written by cachyos/install-applet; see the copy in the checkout.\n"
+            f"var dir = {json.dumps(bin_dir)}\n")
+PY
+
+# -u fails on a package that is not installed yet, -i on one that is.
+if kpackagetool6 -t Plasma/Applet -s "$id" >/dev/null 2>&1; then
+    kpackagetool6 -t Plasma/Applet -u "$stage/$id"
+else
+    kpackagetool6 -t Plasma/Applet -i "$stage/$id"
+fi
+
+cat <<MSG
+
+Installed. Add it with: right-click the panel -> Add or Manage Widgets -> Micachy.
+After an upgrade, Plasma keeps the old QML until it restarts:
+    systemctl --user restart plasma-plasmashell
+MSG
