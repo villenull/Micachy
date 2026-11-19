@@ -2,7 +2,7 @@
 
 > **Resolved 2026-09-04.** The GPU came back after a PSU-off cold boot;
 > the marketplace approved and listed the plugin at `0528582`
-> (https://omarchyplugins.com/plugin.html?id=io.github.villenull.mimarchy);
+> (https://omarchyplugins.com/plugin.html?id=io.github.villenull.micachy);
 > the CPU question is answered in `docs/hardware-notes.md`. Kept as history.
 >
 > **Superseded in part on 2026-09-04.** The local session found that §4's
@@ -22,7 +22,7 @@ be wrong, and it says so.
 
 ## 0. The one-paragraph version
 
-Mimarchy is Diego's Omarchy bar plugin for the ARGB lighting on his CPU cooler
+Micachy is Diego's Omarchy bar plugin for the ARGB lighting on his CPU cooler
 fans, his GPU, and the cooler's built-in display. It is being submitted to the
 Omarchy Plugin Marketplace (`HANCORE-linux/omarchy-plugin-marketplace`, issue
 #2935). Two rounds of maintainer security review have been addressed in code
@@ -30,7 +30,7 @@ and are on `main`, but the issue has **not** yet been nudged to re-validate.
 Separately: while looking into why the `openrgb` process looked heavy in a
 system monitor, a restart of `openrgb.service` re-probed the I2C bus and the
 GPU's LED controller stopped being detected. It was still not lit after a warm
-reboot. Diego then chose a full uninstall of Mimarchy *and* OpenRGB to start
+reboot. Diego then chose a full uninstall of Micachy *and* OpenRGB to start
 clean. Your job: reinstall, get the GPU lit again, settle the resource
 question, finish the marketplace submission — and report back in plain
 English.
@@ -72,8 +72,8 @@ Verify with `git log --oneline -6` and `git tag`.
 | `e1b15fb` | Last commit before the previous session (Aug 23). | Was the submitted commit. |
 | `73fb365` | Round-1 marketplace fixes: `requirements.lock` with sha256 pins, `--require-hashes` / `--no-deps --no-build-isolation` installs, udev rule printed inline instead of `sudo cp` from the checkout, `tests/test_install_inputs.py`. Version 0.4.1. | Accepted by the maintainer ("earlier supply-chain findings are resolved"). |
 | `2c4faad` | `WriteFailureWatch` in `lightd.py`: exit after 5 s of *total* write failure so `Restart=on-failure` reconnects; `tests/test_lightd_recovery.py`. | On main. |
-| `b126f33` | Round-2 marketplace fixes: `install.sh` fails closed (never runs the detection pass; enables `openrgb`/`mimarchy-light` only inside the branch a passing `restrict-openrgb-detectors.py --check` guards, disables them otherwise); `openrgb.service` binds `--server-host 127.0.0.1`; `install.sh` confirms the effective listener with `ss`; README documents both; three more tests. Version 0.4.2. | On main. **Not yet validated by the marketplace** (§3). |
-| this file's commit | `docs/HANDOFF-2026-09.md` + `CLAUDE.md`. **No `v0.4.2` tag exists yet:** the cloud session's git proxy refused tag pushes (HTTP 403, branches only). Create it as your first git action: `git tag -a v0.4.2 -m "Mimarchy 0.4.2" origin/main && git push origin v0.4.2`. | Head of main. |
+| `b126f33` | Round-2 marketplace fixes: `install.sh` fails closed (never runs the detection pass; enables `openrgb`/`micachy-light` only inside the branch a passing `restrict-openrgb-detectors.py --check` guards, disables them otherwise); `openrgb.service` binds `--server-host 127.0.0.1`; `install.sh` confirms the effective listener with `ss`; README documents both; three more tests. Version 0.4.2. | On main. **Not yet validated by the marketplace** (§3). |
+| this file's commit | `docs/HANDOFF-2026-09.md` + `CLAUDE.md`. **No `v0.4.2` tag exists yet:** the cloud session's git proxy refused tag pushes (HTTP 403, branches only). Create it as your first git action: `git tag -a v0.4.2 -m "Micachy 0.4.2" origin/main && git push origin v0.4.2`. | Head of main. |
 
 - Branch `claude/edit-resubmit-submission-0fyh4d` is the previous session's
   working branch and is identical to `main`; delete it when convenient.
@@ -82,7 +82,7 @@ Verify with `git log --oneline -6` and `git tag`.
 - A memory-hardening change (`MALLOC_ARENA_MAX=2`, `MemoryHigh=300M` in
   `openrgb.service`) was written and then **deliberately dropped** before
   reaching main, because the evidence in §5 showed the premise was wrong.
-- Nothing on `main` touches `src/mimarchy/rgb.py`, detection, or the units'
+- Nothing on `main` touches `src/micachy/rgb.py`, detection, or the units'
   detection behaviour in a way that could explain the GPU incident; the
   running system was also never re-installed from these commits during the
   incident. Re-verify that claim yourself rather than inheriting it:
@@ -116,7 +116,7 @@ Verify with `git log --oneline -6` and `git tag`.
   detection pass automatically when OpenRGB had no config, ignored the
   restrict tool's failure, and enabled/started the server unconditionally —
   must fail closed; (2) `openrgb.service` bound the unauthenticated SDK
-  server to all interfaces while Mimarchy only connects to 127.0.0.1 — bind
+  server to all interfaces while Micachy only connects to 127.0.0.1 — bind
   loopback and document/test it. Fixed in `b126f33`.
 - **What is left, in order:**
   1. Confirm `git rev-parse origin/main` and that the marketplace's own
@@ -145,7 +145,7 @@ Reply to post (fill in the SHA):
 > OpenRGB's first detection pass under any circumstances: with no OpenRGB
 > config present it prints the command for the user to run deliberately and
 > stops there; with a config present it runs `restrict-openrgb-detectors.py`
-> and then gates on `--check` — `openrgb.service` and `mimarchy-light.service`
+> and then gates on `--check` — `openrgb.service` and `micachy-light.service`
 > are enabled and started only when the check confirms exactly the safe set,
 > and are otherwise explicitly disabled (including if an earlier run had
 > enabled them), with the remedy printed. The tool's own exit code is
@@ -176,13 +176,13 @@ cat > /tmp/mp/run-baseline.mjs <<'EOF'
 import { runSecurityBaseline } from "./scripts/security-baseline-scanner.mjs";
 import { buildSecurityBaselineReport } from "./scripts/security-baseline-report.mjs";
 const sha = process.argv[2];
-const result = await runSecurityBaseline("https://github.com/villenull/mimarchy", sha, {
+const result = await runSecurityBaseline("https://github.com/villenull/micachy", sha, {
   requiredPaths: ["quickshell/Panel.qml"],
-  listedPlugins: [{ pluginId: "io.github.villenull.mimarchy", manifestPathHint: "manifest.json" }],
+  listedPlugins: [{ pluginId: "io.github.villenull.micachy", manifestPathHint: "manifest.json" }],
 });
 process.stdout.write(buildSecurityBaselineReport(result, { context: "submission" }));
 EOF
-cd /tmp/mp && GITHUB_TOKEN=$(gh auth token) node run-baseline.mjs "$(git -C ~/mimarchy rev-parse origin/main)"
+cd /tmp/mp && GITHUB_TOKEN=$(gh auth token) node run-baseline.mjs "$(git -C ~/micachy rev-parse origin/main)"
 ```
 
 Needs Node 22+. The report's first line embeds base64 JSON with `outcome`,
@@ -193,19 +193,19 @@ installer, all already explained in the issue's Maintainer notes.
 
 ## 4. The GPU incident — what happened, what is known, what is not
 
-### 4.1 Timeline (from `journalctl --user -u openrgb -u mimarchy-light`)
+### 4.1 Timeline (from `journalctl --user -u openrgb -u micachy-light`)
 
 | When (local) | Event |
 |---|---|
 | Aug 23 13:14 | Boot. `openrgb.service` ran continuously until Aug 30: **9 h 26 min CPU over 1 w 6 h wall, 44 M memory peak**. GPU lighting worked. |
 | Aug 30 19:41 | Reboot. `openrgb` ran until Aug 31: **3 min 57 s CPU over 1 d 3 h 52 min, 39.9 M memory peak**. GPU lighting worked. |
-| Aug 31 23:33 | On the previous instance's advice Diego added a systemd drop-in to `openrgb.service` (`MALLOC_ARENA_MAX=2`, `MemoryHigh=300M`) and ran `systemctl --user restart openrgb.service mimarchy-light.service`. **After this restart the GPU LEDs stopped responding.** |
-| Aug 31 23:35 | `mimarchy-light` restarted alone (no change). |
-| Sep 1 | Diagnostics (§4.3). Re-ran the detector tool, restarted `openrgb`, waited 10 s, restarted `mimarchy-light`: still only the motherboard detected. |
+| Aug 31 23:33 | On the previous instance's advice Diego added a systemd drop-in to `openrgb.service` (`MALLOC_ARENA_MAX=2`, `MemoryHigh=300M`) and ran `systemctl --user restart openrgb.service micachy-light.service`. **After this restart the GPU LEDs stopped responding.** |
+| Aug 31 23:35 | `micachy-light` restarted alone (no change). |
+| Sep 1 | Diagnostics (§4.3). Re-ran the detector tool, restarted `openrgb`, waited 10 s, restarted `micachy-light`: still only the motherboard detected. |
 | Sep 2/3 | Warm reboot. Diego reports the GPU LED is still unresponsive. **Whether the card is detected after that reboot was never confirmed** — the first thing to establish. |
 | Sep 3 | Full uninstall (§6) so you start clean. |
 
-### 4.2 The hardware facts (from `docs/hardware-notes.md`, `src/mimarchy/detectors.py`)
+### 4.2 The hardware facts (from `docs/hardware-notes.md`, `src/micachy/detectors.py`)
 
 - GPU: Sapphire Radeon RX 9070 XT Nitro+. Its LED controller is a separate
   microcontroller **on the card**, reached over I2C at `/dev/i2c-7`, address
@@ -224,9 +224,9 @@ installer, all already explained in the issue's Maintainer notes.
 - The narrowed set that was verified on Sep 1 (5 of 1953): `ASUS Aura
   Addressable`, `ASUS Aura Core`, `ASUS Aura Motherboard`, `Corsair Lighting
   Node Pro`, `Sapphire Radeon RX 9070 XT Nitro+`. The Corsair entry was
-  derived from `config.toml`; `mimarchy-ctl status` listed three zones
+  derived from `config.toml`; `micachy-ctl status` listed three zones
   (`cpu_fans`, `gpu`, `strip`). Whether a Corsair device actually exists on
-  this machine is an **open question** — `mimarchy-setup --list` showed only
+  this machine is an **open question** — `micachy-setup --list` showed only
   the ASUS motherboard, so either it was never present (stale wizard output)
   or it, too, stopped being detected. The backup in §6 contains that
   `config.toml`.
@@ -239,7 +239,7 @@ installer, all already explained in the issue's Maintainer notes.
 | `i2c_dev` not loaded | `lsmod` showed it loaded with 36 users. The OpenRGB journal warning "One or more I2C/SMBus interfaces failed to initialize" appears on **every** start, including the working ones — it is noise. |
 | The memory override | `memory.events` for the unit showed `high 0`: the 300 M ceiling never engaged. (The drop-in is removed by the uninstall.) |
 | Changes on `main` | None touch detection or `rgb.py`; the running system was not reinstalled from them. |
-| `mimarchy-ctl status` as evidence of detection | It reads the **state file** and asks systemd if the unit is active (`ctl.py:cmd_status`); it never asks OpenRGB what it sees. "gpu: unhinged" proves nothing about the card. Use `mimarchy-setup --list` or `openrgb --list-devices`. |
+| `micachy-ctl status` as evidence of detection | It reads the **state file** and asks systemd if the unit is active (`ctl.py:cmd_status`); it never asks OpenRGB what it sees. "gpu: unhinged" proves nothing about the card. Use `micachy-setup --list` or `openrgb --list-devices`. |
 
 Two of the previous instance's confident calls were wrong: it blamed
 `i2c-dev` first, then predicted a warm reboot would fix it. Treat its
@@ -276,7 +276,7 @@ remaining hypotheses as hypotheses.
    `sudo i2cdetect -y -r 7` (bus 7 only; look for `0x28` answering). If the
    adapter exists and `0x28` is silent, that is hypothesis 1 → ask Diego for
    a cold boot, then repeat step 1.
-3. If it appears: proceed with the Mimarchy install (§7), narrow the
+3. If it appears: proceed with the Micachy install (§7), narrow the
    detectors, run the wizard, and verify with the webcam that a rendered
    effect reaches the card and that mode transitions (e.g. rainbow →
    chase) take. `docs/hardware-notes.md` and the comments in `rgb.py`
@@ -285,7 +285,7 @@ remaining hypotheses as hypotheses.
    `lightd` trusts the device list it sees at startup forever and never
    notices a configured zone that is missing (add a startup comparison of
    configured vs detected zones that logs plainly and exits non-zero so
-   `Restart=` retries, with a bounded backoff); and `mimarchy-ctl status`
+   `Restart=` retries, with a bounded backoff); and `micachy-ctl status`
    should show detection state, not just the state file.
 
 ## 5. The CPU/RAM question
@@ -305,11 +305,11 @@ remaining hypotheses as hypotheses.
 - What *is* real and unexplained: CPU time. The Aug 23–30 run consumed
   **9 h 26 min of CPU over 174 h wall (~5.4 % of a core, continuously)**;
   the Aug 30–31 run only **3 min 57 s over 27.9 h (~0.24 %)**. Twenty times
-  the per-hour cost in the first run. `mimarchy-light` itself is cheap in
-  both (15 min / 1 min 50 s). Nothing changed in Mimarchy between the two.
+  the per-hour cost in the first run. `micachy-light` itself is cheap in
+  both (15 min / 1 min 50 s). Nothing changed in Micachy between the two.
   Find out what differs (detection retries? the display service? the
   effect in use? a stuck client?) before optimising anything.
-- Levers if a reduction is warranted: `mimarchy-lightd --fps 20` (the flag
+- Levers if a reduction is warranted: `micachy-lightd --fps 20` (the flag
   exists; `FPS = 30` in `lightd.py`) cuts the SDK stream by a third with
   little visible cost; `write_frame` already uses `fast=True`. Do not
   reintroduce the memory hardening without a measurement that justifies it.
@@ -317,16 +317,16 @@ remaining hypotheses as hypotheses.
 ## 6. What the uninstall removed (2026-09-03)
 
 Diego ran the command below from a terminal. It first writes a backup to
-`~/mimarchy-uninstall-backup-<timestamp>.tar.gz` (contents of
-`~/.config/mimarchy` — including `config.toml` with the zone selection and
+`~/micachy-uninstall-backup-<timestamp>.tar.gz` (contents of
+`~/.config/micachy` — including `config.toml` with the zone selection and
 `lighting.json` — `~/.config/OpenRGB` including the narrowed detector list
 and its `.bak-*` files, and the three user units plus the drop-in) and copies
 the udev rule next to it. Then it removes: the three user units and the
 override drop-in; the bar plugin (`omarchy plugin remove
-io.github.villenull.mimarchy` and its checkout); the venv
-(`~/.local/share/mimarchy`); the launchers in `~/.local/bin`; the theme-set
-hook; `~/.config/mimarchy`; the runtime state file;
-`/etc/udev/rules.d/99-mimarchy.rules`; the `openrgb` package (`pacman -Rns`)
+io.github.villenull.micachy` and its checkout); the venv
+(`~/.local/share/micachy`); the launchers in `~/.local/bin`; the theme-set
+hook; `~/.config/micachy`; the runtime state file;
+`/etc/udev/rules.d/99-micachy.rules`; the `openrgb` package (`pacman -Rns`)
 and `~/.config/OpenRGB`.
 
 **What actually happened on 2026-09-04:** the run paused for several minutes
@@ -334,40 +334,40 @@ at the plugin step (`omarchy plugin remove` with its stderr hidden), then
 completed on its own: `pacman -Rns` removed **openrgb 1.0rc3-3** and its three
 orphaned dependencies (`qt5-base`, `qt5-translations`, `mbedtls3` — only
 OpenRGB needed them; `pacman -S openrgb` brings them back). Backup:
-`~/mimarchy-uninstall-backup-20260904-111320.tar.gz`. A second run of the
+`~/micachy-uninstall-backup-20260904-111320.tar.gz`. A second run of the
 corrected command below confirmed nothing was left ("plugin ... is not
 installed", "no package named openrgb"). Note the OpenRGB version: if
 `/var/log/pacman.log` shows an openrgb upgrade between Aug 30 and Aug 31,
 that is hypothesis 2 in §4.4. **Verify on arrival:** `omarchy plugin list` should not show
-the plugin, `systemctl --user list-unit-files | grep -E 'openrgb|mimarchy'`
+the plugin, `systemctl --user list-unit-files | grep -E 'openrgb|micachy'`
 should be empty, `pacman -Qs openrgb` should be empty, and the backup tarball
 should exist. Redo any step that did not take.
 
-Left alone on purpose: any Mimarchy entry Diego merged into
+Left alone on purpose: any Micachy entry Diego merged into
 `~/.config/omarchy/extensions/omarchy-menu.jsonc`, and the optional
 `nct6687d` fan-RPM kernel module if he installed it (`pacman -Qs nct6687`).
 
 ```bash
 bash -c '
 set -u
-ts=$(date +%Y%m%d-%H%M%S); backup=$HOME/mimarchy-uninstall-backup-$ts.tar.gz
+ts=$(date +%Y%m%d-%H%M%S); backup=$HOME/micachy-uninstall-backup-$ts.tar.gz
 echo "==> backing up configs to $backup"
-tar czf "$backup" --ignore-failed-read -C "$HOME" .config/mimarchy .config/OpenRGB .config/systemd/user/openrgb.service .config/systemd/user/openrgb.service.d .config/systemd/user/mimarchy-light.service .config/systemd/user/mimarchy-display.service 2>/dev/null
-[ -f /etc/udev/rules.d/99-mimarchy.rules ] && cp /etc/udev/rules.d/99-mimarchy.rules "$HOME/mimarchy-uninstall-backup-$ts-99-mimarchy.rules"
+tar czf "$backup" --ignore-failed-read -C "$HOME" .config/micachy .config/OpenRGB .config/systemd/user/openrgb.service .config/systemd/user/openrgb.service.d .config/systemd/user/micachy-light.service .config/systemd/user/micachy-display.service 2>/dev/null
+[ -f /etc/udev/rules.d/99-micachy.rules ] && cp /etc/udev/rules.d/99-micachy.rules "$HOME/micachy-uninstall-backup-$ts-99-micachy.rules"
 echo "==> stopping and disabling the user services"
-systemctl --user disable --now mimarchy-light.service mimarchy-display.service openrgb.service 2>/dev/null
+systemctl --user disable --now micachy-light.service micachy-display.service openrgb.service 2>/dev/null
 rm -rf "$HOME/.config/systemd/user/openrgb.service.d"
-rm -f "$HOME"/.config/systemd/user/{openrgb,mimarchy-light,mimarchy-display}.service
+rm -f "$HOME"/.config/systemd/user/{openrgb,micachy-light,micachy-display}.service
 systemctl --user daemon-reload; systemctl --user reset-failed 2>/dev/null
 echo "==> removing the bar plugin"
-command -v omarchy >/dev/null && timeout --foreground 60 omarchy plugin remove io.github.villenull.mimarchy || echo "    (plugin command did not finish — removing its folder directly)"
-rm -rf "$HOME/.config/omarchy/plugins/io.github.villenull.mimarchy"
+command -v omarchy >/dev/null && timeout --foreground 60 omarchy plugin remove io.github.villenull.micachy || echo "    (plugin command did not finish — removing its folder directly)"
+rm -rf "$HOME/.config/omarchy/plugins/io.github.villenull.micachy"
 echo "==> removing venv, launchers, theme hook, config and state"
-rm -rf "$HOME/.local/share/mimarchy" "$HOME/.config/mimarchy"
-rm -f "$HOME/.local/bin/mimarchy-ctl" "$HOME/.local/bin/mimarchy-setup" "$HOME/.config/omarchy/hooks/theme-set.d/mimarchy"
-rm -f "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/mimarchy-lighting.json"
+rm -rf "$HOME/.local/share/micachy" "$HOME/.config/micachy"
+rm -f "$HOME/.local/bin/micachy-ctl" "$HOME/.local/bin/micachy-setup" "$HOME/.config/omarchy/hooks/theme-set.d/micachy"
+rm -f "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/micachy-lighting.json"
 echo "==> root steps: udev rule and the openrgb package (sudo will ask for your password)"
-sudo rm -f /etc/udev/rules.d/99-mimarchy.rules && sudo udevadm control --reload-rules
+sudo rm -f /etc/udev/rules.d/99-micachy.rules && sudo udevadm control --reload-rules
 if pacman -Qq openrgb >/dev/null 2>&1; then sudo pacman -Rns --noconfirm openrgb; else echo "    (no package named openrgb — check: pacman -Qs openrgb)"; fi
 rm -rf "$HOME/.config/OpenRGB"
 echo "==> done. Backup: $backup"
@@ -380,21 +380,21 @@ echo "==> done. Backup: $backup"
 will *tell you* to run the first pass and stop. The order that works:
 
 ```bash
-git clone https://github.com/villenull/mimarchy ~/mimarchy && cd ~/mimarchy   # your dev clone; run everything from here
+git clone https://github.com/villenull/micachy ~/micachy && cd ~/micachy   # your dev clone; run everything from here
 sudo pacman -S --needed openrgb
 openrgb --list-devices            # THE broad first pass (§4.2). Warn Diego first. Creates ~/.config/OpenRGB/OpenRGB.json.
 ./install.sh                      # narrows to the reference set (no config.toml yet → REFERENCE_KEEP, which includes the Sapphire detector), verifies, installs, enables
-mimarchy-setup                    # pick zones — the GPU must be detected for it to be selectable
-tools/restrict-openrgb-detectors.py && systemctl --user restart openrgb.service mimarchy-light.service
-omarchy plugin add https://github.com/villenull/mimarchy --enable   # the bar widget (a second clone; the backend it calls is the venv install.sh built)
+micachy-setup                    # pick zones — the GPU must be detected for it to be selectable
+tools/restrict-openrgb-detectors.py && systemctl --user restart openrgb.service micachy-light.service
+omarchy plugin add https://github.com/villenull/micachy --enable   # the bar widget (a second clone; the backend it calls is the venv install.sh built)
 ```
 
 Then the printed root step for the cooler display's hidraw node (the `sudo
 tee` udev command `install.sh` prints), and optionally the `omarchy-menu.jsonc`
 entry. The venv is an *editable* install pointing at whichever checkout ran
-`install.sh` — run it from `~/mimarchy` so your code changes are what the
-daemons execute after a `systemctl --user restart mimarchy-light.service`.
-Restarting `mimarchy-light` alone is always safe; restarting `openrgb`
+`install.sh` — run it from `~/micachy` so your code changes are what the
+daemons execute after a `systemctl --user restart micachy-light.service`.
+Restarting `micachy-light` alone is always safe; restarting `openrgb`
 re-probes the I2C bus and is the action that lost the card in §4 — prefer a
 reboot for that until §4 is understood.
 
@@ -404,7 +404,7 @@ Three tracks. A is hardware-serial; B is independent and can run in a
 subagent from the start; C needs a running install, so it follows A.
 
 - **A — GPU (blocking, physical):** §4.5. Success = the webcam shows the
-  card following a Mimarchy effect and `mimarchy-setup --list` shows it.
+  card following a Micachy effect and `micachy-setup --list` shows it.
   Then the code hardening in §4.5 step 4, with tests.
 - **B — Marketplace (independent):** §3. Success = `needs-fixes` cleared by
   revalidation, every maintainer ask answered on `main`, and either

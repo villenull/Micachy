@@ -1,4 +1,4 @@
-"""`mimarchy-ctl` — reads and changes lighting state for the bar panel.
+"""`micachy-ctl` — reads and changes lighting state for the bar panel.
 
 Exists because the Omarchy 4 bar widget needs to read and change lighting state,
 and QML is the wrong place to do either. Quickshell plugins run unsandboxed
@@ -11,7 +11,7 @@ keyboard shortcut both end up here.
 It writes through `lightstate`, using the same atomic write-then-rename
 `lightstate` has always used, so two invocations landing together — a click
 and a keypress, say — cannot interleave into a half-written file. Nothing here
-talks to hardware — `mimarchy-lightd` still owns that, and still renders both
+talks to hardware — `micachy-lightd` still owns that, and still renders both
 controllers from one clock. This only ever moves the desired state that the
 daemon reads.
 
@@ -19,10 +19,10 @@ Useful on its own terms as well, which is why it is a real command rather than a
 private helper: Hyprland keybindings, shell scripts, and the Omarchy menu can
 all drive the lighting without opening a window.
 
-    mimarchy-ctl status --json
-    mimarchy-ctl speed +
-    mimarchy-ctl effect rainbow
-    mimarchy-ctl display toggle
+    micachy-ctl status --json
+    micachy-ctl speed +
+    micachy-ctl effect rainbow
+    micachy-ctl display toggle
 """
 
 from __future__ import annotations
@@ -32,14 +32,14 @@ import json
 import sys
 import time
 
-from mimarchy import detection, lightstate
-from mimarchy.config import load_config
-from mimarchy.effects import COLOUR_EFFECTS, EFFECTS, SPEED_LEVELS, nearest_speed
-from mimarchy.hwmon import (cpu_fan_chip_present, read_cpu_fan_rpm, read_cpu_temp,
+from micachy import detection, lightstate
+from micachy.config import load_config
+from micachy.effects import COLOUR_EFFECTS, EFFECTS, SPEED_LEVELS, nearest_speed
+from micachy.hwmon import (cpu_fan_chip_present, read_cpu_fan_rpm, read_cpu_temp,
                             read_gpu_temp, snapshot)
-from mimarchy.service import (daemon_alive, daemon_script, read_note, spawn_daemon,
+from micachy.service import (daemon_alive, daemon_script, read_note, spawn_daemon,
                               stop_daemon)
-from mimarchy.theme import LED_ROLES, led_colour
+from micachy.theme import LED_ROLES, led_colour
 
 #: Effects that ignore the speed ladder entirely. Asking for a speed change on
 #: one of these is not an error — it is a no-op with an explanation, because the
@@ -52,7 +52,7 @@ def _targets(state: lightstate.LightingState) -> list[str]:
 
     Linked is not "both targets happen to match" — it means the pair is driven
     as one, so a command edits every target rather than a chosen one. Unlinked,
-    the same command still edits every target, because `mimarchy-ctl` has no
+    the same command still edits every target, because `micachy-ctl` has no
     notion of a selected row; picking one is the panel's job.
     """
     keys = list(state.targets)
@@ -329,7 +329,7 @@ def cmd_reload_theme(args: argparse.Namespace) -> int:
 
     This is what `~/.config/omarchy/hooks/theme-set.d/` calls, and it is the
     whole of the live re-theme: the resolved colours are written back into the
-    state file, and `mimarchy-lightd` picks them up on its next frame through
+    state file, and `micachy-lightd` picks them up on its next frame through
     the same mtime poll it already uses for a keypress. Nothing in the daemon
     knows a theme switch happened, which is precisely why this could not break
     the rendering path.
@@ -371,7 +371,7 @@ def cmd_link(args: argparse.Namespace) -> int:
     lightstate.save(state)
 
     # The link flag is also persisted in config.toml, which is what
-    # `mimarchy-setup` carries forward on a re-run. Writing only the state file
+    # `micachy-setup` carries forward on a re-run. Writing only the state file
     # would leave the two disagreeing until the wizard was run again.
     try:
         load_config().save_link_state(state.linked)
@@ -385,8 +385,8 @@ def cmd_link(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="mimarchy-ctl",
-        description="Drive Mimarchy's lighting and cooler display from the command line.",
+        prog="micachy-ctl",
+        description="Drive Micachy's lighting and cooler display from the command line.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from mimarchy.lightd import FrameGate  # noqa: E402
+from micachy.lightd import FrameGate  # noqa: E402
 
 RED = [(255, 0, 0)]
 BLUE = [(0, 0, 255)]

@@ -36,7 +36,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-from mimarchy import smbus
+from micachy import smbus
 
 ADDR = 0x28
 

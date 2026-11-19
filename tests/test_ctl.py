@@ -1,4 +1,4 @@
-"""Tests for `mimarchy-ctl`, the command the bar widget drives everything through.
+"""Tests for `micachy-ctl`, the command the bar widget drives everything through.
 
 This is where the widget's behaviour is actually pinned down. The QML calls one
 command per interaction and parses one JSON document, so a mistake here shows up
@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import ctl, detection, lightstate  # noqa: E402
-from mimarchy.effects import SPEED_LEVELS  # noqa: E402
+from micachy import ctl, detection, lightstate  # noqa: E402
+from micachy.effects import SPEED_LEVELS  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -398,7 +398,7 @@ class TestColour:
 class TestDisplay:
     def test_toggle_starts_it_when_stopped(self, monkeypatch):
         spawns = []
-        monkeypatch.setattr(ctl, "daemon_script", lambda name: "bin/mimarchy-displayd")
+        monkeypatch.setattr(ctl, "daemon_script", lambda name: "bin/micachy-displayd")
         monkeypatch.setattr(ctl, "spawn_daemon", lambda *a: spawns.append(a))
         # The fresh spawn claims its pidfile before the poll notices: first
         # call (the toggle decision) says stopped, later calls say running.
@@ -432,7 +432,7 @@ class TestDisplay:
 
     def test_a_failed_start_is_reported(self, monkeypatch, capsys):
         monkeypatch.setattr(ctl, "daemon_alive", lambda name: False)
-        monkeypatch.setattr(ctl, "daemon_script", lambda name: "bin/mimarchy-displayd")
+        monkeypatch.setattr(ctl, "daemon_script", lambda name: "bin/micachy-displayd")
         monkeypatch.setattr(ctl, "spawn_daemon", lambda *a: None)
 
         assert ctl.main(["display", "on"]) == 1

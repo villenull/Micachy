@@ -1,8 +1,8 @@
-"""Desired lighting state, shared between `mimarchy-ctl` and the lighting daemon.
+"""Desired lighting state, shared between `micachy-ctl` and the lighting daemon.
 
-A small JSON file `mimarchy-ctl` writes and the daemon polls. Deliberately not
+A small JSON file `micachy-ctl` writes and the daemon polls. Deliberately not
 a socket: the daemon has to survive the writer exiting (that's the whole point
-of it existing — `mimarchy-ctl` is a one-shot process, called anew by the bar
+of it existing — `micachy-ctl` is a one-shot process, called anew by the bar
 panel for every click and keypress), the state is a handful of fields, and a
 file means state also persists across reboots with no extra work.
 
@@ -23,11 +23,11 @@ _RUNTIME_DIR = Path(
 )
 _CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
 
-STATE_PATH = _RUNTIME_DIR / "mimarchy-lighting.json"
+STATE_PATH = _RUNTIME_DIR / "micachy-lighting.json"
 
 #: Where the state is kept across reboots. XDG_RUNTIME_DIR is cleared on
 #: logout, so the daemon seeds from here when the runtime copy is missing.
-PERSIST_PATH = _CONFIG_HOME / "mimarchy" / "lighting.json"
+PERSIST_PATH = _CONFIG_HOME / "micachy" / "lighting.json"
 
 
 @dataclass

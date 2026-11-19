@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import hwmon  # noqa: E402
+from micachy import hwmon  # noqa: E402
 
 SENSORS = {
     "k10temp-pci-00c3": {"Tctl": {"temp1_input": 52.2}},

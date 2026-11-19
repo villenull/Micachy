@@ -27,13 +27,13 @@ import sys
 import time
 import zlib
 
-from mimarchy import detection, lightstate
-from mimarchy.config import Config, load_config
-from mimarchy.effects import (COLOUR_EFFECTS, SPATIAL_EFFECTS,
+from micachy import detection, lightstate
+from micachy.config import Config, load_config
+from micachy.effects import (COLOUR_EFFECTS, SPATIAL_EFFECTS,
                               firmware_period, render,
                               unhinged_firmware_phase)
-from mimarchy.rgb import RGBController, RGBError
-from mimarchy.service import (UDEV_NOTE, claim_pidfile, clear_note, ensure_theme_hook,
+from micachy.rgb import RGBController, RGBError
+from micachy.service import (UDEV_NOTE, claim_pidfile, clear_note, ensure_theme_hook,
                               owner_pid, write_note)
 
 #: The board tops out around 60 fps for a 60-LED write (measured 15.9 ms/frame).
@@ -251,7 +251,7 @@ def describe_missing(config: Config, missing: list[str]) -> str:
         zone = config.zones[key]
         lines.append(
             f"zone {key!r} not detected: no hidraw node or I2C bus answered for "
-            f"{zone.device!r} (zone {zone.zone}). Check `mimarchy-setup --list`; "
+            f"{zone.device!r} (zone {zone.zone}). Check `micachy-setup --list`; "
             "if the device is missing there too, the controller never answered — "
             "for a GPU whose controller has dropped off its I2C bus, a cold "
             "boot (power off at the PSU) is the known fix."
@@ -305,7 +305,7 @@ def recheck_missing(config: Config, connect, missing: list[str]):
 
 
 def report_detection(rgb, config: Config, zones: dict[str, int]) -> detection.Detection:
-    """What `mimarchy-ctl status` will show for each configured zone."""
+    """What `micachy-ctl status` will show for each configured zone."""
     found = {z.key: z for z in rgb.list_zones()}
     report = detection.Detection()
     for key, cfg in config.zones.items():
@@ -508,7 +508,7 @@ def main() -> None:
         # Another instance owns the slot — a manual start racing the panel's
         # supervision, usually. Exit 0 with the owner named, so the supervisor
         # treats this as a clean no-op rather than a crash to back off from.
-        print(f"mimarchy-lightd already running (pid {owner_pid('lightd')})",
+        print(f"micachy-lightd already running (pid {owner_pid('lightd')})",
               file=sys.stderr)
         return
     clear_note("lightd")

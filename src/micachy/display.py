@@ -36,9 +36,9 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-from mimarchy import hidraw
+from micachy import hidraw
 
-from mimarchy.config import DisplayConfig
+from micachy.config import DisplayConfig
 
 FRAME_LEN = 64
 FRAME_HEADER = 0x40

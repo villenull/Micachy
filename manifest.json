@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "id": "io.github.villenull.mimarchy",
-  "name": "Mimarchy",
+  "id": "io.github.villenull.micachy",
+  "name": "Micachy",
   "version": "0.6.1",
   "author": "Diego Huyke",
   "license": "MIT",
@@ -13,7 +13,7 @@
     "barWidget": "quickshell/Panel.qml"
   },
   "barWidget": {
-    "displayName": "Mimarchy",
+    "displayName": "Micachy",
     "description": "Per-zone lighting effect, colour and speed, plus the cooler display — one icon and one panel, no tooltip.",
     "category": "System",
     "defaultSection": "right",

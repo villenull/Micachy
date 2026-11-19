@@ -1,4 +1,4 @@
-# Mimarchy: hidraw access for the cooler display and the Aura controller.
+# Micachy: hidraw access for the cooler display and the Aura controller.
 #
 # Cooler display: Balam Rush Heliux Pro HEX75 panel controller.
 #
@@ -7,7 +7,7 @@
 # a cloned ID also used by USB relay boards.
 #
 # Without this, its /dev/hidraw node is root-only (crw------- root root) and
-# mimarchy cannot write display frames.
+# micachy cannot write display frames.
 #
 # Access is granted the way logind grants it for the AURA controller and the
 # I2C buses: a `uaccess` tag, which puts an ACL for the active seat's user on
@@ -25,7 +25,7 @@
 # access to every keyboard — so on Omarchy the group grants nothing.
 #
 # Aura controller: the motherboard's ASUS Aura USB chip, which the lighting
-# backend drives directly over hidraw (see src/mimarchy/aura.py). Its node is
+# backend drives directly over hidraw (see src/micachy/aura.py). Its node is
 # root-only for the same reason, so it gets the same treatment: the tag plus
 # the builtin run here, with GROUP="input" as the same no-logind fallback.
 #

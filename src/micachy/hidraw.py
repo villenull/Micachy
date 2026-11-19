@@ -90,7 +90,7 @@ class HidDevice:
                 raise HidError(
                     f"cannot open {path}: permission denied. The node is "
                     "root-only until the udev rule lands — install "
-                    "/etc/udev/rules.d/99-mimarchy.rules (see the README), "
+                    "/etc/udev/rules.d/99-micachy.rules (see the README), "
                     "reload udev, and replug; or run as root."
                 ) from exc
             raise HidError(

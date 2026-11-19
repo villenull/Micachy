@@ -5,7 +5,7 @@ Ports the packet layout from OpenRGB's `AsusAuraUSBController` tree
 `AsusAuraAddressableController.cpp`, `RGBController_AsusAuraUSB.cpp` —
 GPL-2.0-or-later, by Adam Honse and Martin Hartl), minus everything OpenRGB
 needs that a single-board tool does not: no firmware queries at import, no
-multi-device dispatch, no effect modes beyond Direct (Mimarchy renders its own
+multi-device dispatch, no effect modes beyond Direct (Micachy renders its own
 effects in software; see `lightd`).
 
 *Protocol, as the firmware sees it.* The HID report descriptor declares report
@@ -45,7 +45,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from mimarchy import hidraw
+from micachy import hidraw
 
 VID = 0x0B05
 PID = 0x19AF

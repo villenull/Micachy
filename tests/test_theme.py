@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import theme  # noqa: E402
+from micachy import theme  # noqa: E402
 
 # Stock Omarchy 4 theme, verbatim.
 V4 = """\

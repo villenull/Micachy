@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import lightstate  # noqa: E402
-from mimarchy.lightd import _seed, plan  # noqa: E402
+from micachy import lightstate  # noqa: E402
+from micachy.lightd import _seed, plan  # noqa: E402
 
 #: The real shapes: the cooler strip is addressable, the GPU exposes one LED for a
 #: bar with many physical segments.
@@ -164,7 +164,7 @@ def test_linked_zones_read_one_shared_entry() -> None:
 
 def test_a_third_zone_is_pulled_into_the_shared_state_when_linked() -> None:
     """Linking is *every* configured zone, not the two named `cpu_fans` and
-    `gpu` — those are just the names `mimarchy-setup` happens to suggest.
+    `gpu` — those are just the names `micachy-setup` happens to suggest.
 
     So a third zone joins the link exactly like the first two: while linked,
     `case` reads the same shared entry they do, rather than keeping whatever

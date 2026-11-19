@@ -2,8 +2,8 @@
 
 One facade over two controllers that are genuinely separate hardware:
 
-  * the motherboard's ASUS Aura USB controller (`mimarchy.aura`), and
-  * the Sapphire RX 9070 XT's own Nitro Glow controller (`mimarchy.nitro`),
+  * the motherboard's ASUS Aura USB controller (`micachy.aura`), and
+  * the Sapphire RX 9070 XT's own Nitro Glow controller (`micachy.nitro`),
     reached over I2C on the card — the GPU's ARGB connector is a source, not
     a sink, so nothing on the motherboard headers can drive the card's LEDs.
 
@@ -18,7 +18,7 @@ Three non-obvious things this handles, all learned the hard way here:
    OpenRGB's External Control mode does. In a firmware effect mode the
    controller likewise runs its own animation and ignores colour writes,
    so entering and leaving firmware is explicit.
-3. Only narrow buses are ever probed — see `mimarchy.nitro` for why a broad
+3. Only narrow buses are ever probed — see `micachy.nitro` for why a broad
    I2C scan is not on the table.
 """
 
@@ -28,10 +28,10 @@ import math
 import time
 from dataclasses import dataclass
 
-from mimarchy import aura as _aura
-from mimarchy import hidraw, nitro as _nitro
-from mimarchy import smbus
-from mimarchy.config import Config
+from micachy import aura as _aura
+from micachy import hidraw, nitro as _nitro
+from micachy import smbus
+from micachy.config import Config
 
 #: How long to let the GPU settle between the two halves of a mode transition.
 #: Measured: 0.3 s was enough to make entering a firmware effect reliable, so
@@ -56,7 +56,7 @@ class RGBError(RuntimeError):
 def _is_gpu_zone(key: str, cfg) -> bool:
     """Whether this config zone points at the card rather than the board.
 
-    The key is the authority — `mimarchy-setup` suggests `gpu` for the card —
+    The key is the authority — `micachy-setup` suggests `gpu` for the card —
     and the device string is the fallback, so configs written against the old
     substring matching (`device = "Sapphire"`) keep routing to the card.
     """
@@ -89,10 +89,10 @@ class RGBController:
         if self._aura is None and self._nitro is None:
             raise RGBError(
                 "No lighting controller answered. For the board, the Aura "
-                "hidraw node is root-only until udev/99-mimarchy.rules is "
+                "hidraw node is root-only until udev/99-micachy.rules is "
                 "installed (see README); for the card, a bar that went dark "
                 "suddenly usually needs a cold boot (power off at the PSU). "
-                "Run `mimarchy-setup --list` to see what was found."
+                "Run `micachy-setup --list` to see what was found."
             )
 
         self._zones: dict[str, tuple[str, _aura.Channel | None]] = {}

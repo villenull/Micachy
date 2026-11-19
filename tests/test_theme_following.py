@@ -2,8 +2,8 @@
 
 The feature is one idea in three places: `theme.led_colour` resolves a palette
 role to RGB, `lightstate.TargetState.colour_role` records that a colour was
-chosen as a role rather than as a value, and `mimarchy-ctl reload-theme`
-re-resolves those roles when the theme changes. `mimarchy-lightd` is
+chosen as a role rather than as a value, and `micachy-ctl reload-theme`
+re-resolves those roles when the theme changes. `micachy-lightd` is
 deliberately not involved — it reads the resolved `colour` exactly as before,
 which is what keeps the rendering path free of a new failure mode.
 
@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import ctl, lightstate, theme  # noqa: E402
+from micachy import ctl, lightstate, theme  # noqa: E402
 
 # tokyo-night, trimmed to the roles this exercises.
 V4 = """\
@@ -163,7 +163,7 @@ class TestStateRoundTrip:
 
 @pytest.fixture
 def ctl_env(tmp_path, monkeypatch):
-    """`mimarchy-ctl` pointed at temp state, with no daemons and no sensors."""
+    """`micachy-ctl` pointed at temp state, with no daemons and no sensors."""
     monkeypatch.setattr(lightstate, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(lightstate, "PERSIST_PATH", tmp_path / "persist.json")
     monkeypatch.setattr(ctl, "daemon_alive", lambda unit: False)

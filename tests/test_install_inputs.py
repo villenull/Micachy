@@ -11,7 +11,7 @@ span more than one file live here, held still by tests:
 * The udev rules a user installs with sudo are spelled out inline in the
   README's printed command instead of being read out of this user-writable
   checkout at elevation time — and those printed lines must stay
-  byte-identical to the reference copy in udev/99-mimarchy.rules.
+  byte-identical to the reference copy in udev/99-micachy.rules.
 * bin/ holds the real launchers the panel spawns, and the theme hook finds
   them relative to its own real path rather than by a hardcoded home.
 """
@@ -26,11 +26,11 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 
-LAUNCHERS = ("mimarchy-ctl", "mimarchy-lightd", "mimarchy-displayd", "mimarchy-setup")
+LAUNCHERS = ("micachy-ctl", "micachy-lightd", "micachy-displayd", "micachy-setup")
 
 
 def reference_rules() -> list[str]:
-    return [line for line in (REPO / "udev" / "99-mimarchy.rules").read_text().splitlines()
+    return [line for line in (REPO / "udev" / "99-micachy.rules").read_text().splitlines()
             if line and not line.startswith("#")]
 
 
@@ -51,7 +51,7 @@ def test_backend_installs_lock_free_with_no_deps():
 def test_printed_udev_rules_match_the_reference_file():
     """The rules are deliberately duplicated: inline in the README's printed
     sudo command (so root never reads the checkout) and as
-    udev/99-mimarchy.rules (the readable reference). Byte-identical or the
+    udev/99-micachy.rules (the readable reference). Byte-identical or the
     docs lie about the rules."""
     printed = re.findall(r"'(SUBSYSTEM==\"hidraw\"[^']*)'", (REPO / "README.md").read_text())
     assert printed, "README no longer prints the udev rules inline"
@@ -88,14 +88,14 @@ def test_no_installer_narrative_remains_in_docs():
         history_stripped = re.sub(r"^>.*$", "", text, flags=re.M)
         assert "install.sh" not in history_stripped, relative
         assert "systemctl" not in history_stripped, relative
-        assert "mimarchy-light.service" not in history_stripped, relative
-        assert "mimarchy-display.service" not in history_stripped, relative
+        assert "micachy-light.service" not in history_stripped, relative
+        assert "micachy-display.service" not in history_stripped, relative
 
 
 def test_readme_install_is_one_command():
     """Plugin-add is the entire install; the only sudo block is the udev one."""
     readme = (REPO / "README.md").read_text()
-    assert "omarchy plugin add https://github.com/villenull/mimarchy --enable" in readme
+    assert "omarchy plugin add https://github.com/villenull/micachy --enable" in readme
     assert readme.count("sudo") >= 3  # tee + reload + trigger in the udev block
     assert "virtualenv" not in readme.lower()
 
@@ -116,11 +116,11 @@ def test_bin_launchers_exist_executable_and_compile_clean():
 def test_hook_resolves_bin_relatively():
     """The theme hook runs from ~/.config as a symlink or copy, so it must
     locate the launcher from its own real path — never via $HOME or PATH."""
-    hook = (REPO / "omarchy" / "theme-set.d" / "mimarchy").read_text()
+    hook = (REPO / "omarchy" / "theme-set.d" / "micachy").read_text()
     code = "\n".join(line for line in hook.splitlines() if not line.startswith("#"))
     assert "$HOME" not in code and "~/" not in code  # self-locating, not home-based
     assert "realpath" in hook
-    assert "../../bin/mimarchy-ctl" in hook
+    assert "../../bin/micachy-ctl" in hook
     assert "/usr/bin/python3" in hook
     assert "timeout 5s" in hook  # still time-limited inside the theme switch
     assert "&" in hook  # still backgrounded so theme changes feel instant
@@ -137,13 +137,13 @@ def test_no_openrgb_reference_remains():
         body = re.sub(r"^>.*$", "", (REPO / relative).read_text(), flags=re.M)
         assert "penRGB" not in body and "penrgb" not in body and "6742" not in body, relative
     for path in list((REPO / "bin").iterdir()) + [
-        REPO / "omarchy" / "theme-set.d" / "mimarchy",
-        REPO / "udev" / "99-mimarchy.rules",
+        REPO / "omarchy" / "theme-set.d" / "micachy",
+        REPO / "udev" / "99-micachy.rules",
     ]:
         if path.is_file():
             text = path.read_text(errors="replace")
             assert "penRGB" not in text and "penrgb" not in text, str(path)
-    assert not (REPO / "src" / "mimarchy" / "detectors.py").exists()
+    assert not (REPO / "src" / "micachy" / "detectors.py").exists()
     assert not (REPO / "systemd").exists()
 
 

@@ -10,7 +10,7 @@ Three things are pinned here. The startup check names exactly the configured
 zones that are missing, in config order. The grace window keeps re-opening
 the controllers — because a device still enumerating at login answers a later
 open though it missed the first — but gives up after a bounded time and runs
-with what it found. And the report written for `mimarchy-ctl status` says
+with what it found. And the report written for `micachy-ctl status` says
 which zones were and were not found.
 """
 
@@ -21,11 +21,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from mimarchy import detection  # noqa: E402
-from mimarchy.config import Config, RGBZoneConfig  # noqa: E402
-from mimarchy.lightd import (describe_missing, missing_zones,  # noqa: E402
+from micachy import detection  # noqa: E402
+from micachy.config import Config, RGBZoneConfig  # noqa: E402
+from micachy.lightd import (describe_missing, missing_zones,  # noqa: E402
                              recheck_missing, report_detection, settle_zones)
-from mimarchy.rgb import RGBError, ZoneInfo  # noqa: E402
+from micachy.rgb import RGBError, ZoneInfo  # noqa: E402
 
 
 def _config() -> Config:
@@ -81,7 +81,7 @@ def test_the_message_says_what_was_looked_for() -> None:
     text = describe_missing(_config(), ["gpu"])
     assert "'gpu'" in text
     assert "Sapphire Radeon RX 9070 XT Nitro+" in text
-    assert "mimarchy-setup --list" in text
+    assert "micachy-setup --list" in text
 
 
 def test_a_late_controller_is_picked_up_within_the_grace_window() -> None:
@@ -132,7 +132,7 @@ def test_the_report_names_found_and_missing_zones(tmp_path) -> None:
     assert report.zones["gpu"].configured_device == "Sapphire Radeon RX 9070 XT Nitro+"
     assert report.missing == ["gpu"]
 
-    # Round-trips through the file `mimarchy-ctl status` reads.
+    # Round-trips through the file `micachy-ctl status` reads.
     path = tmp_path / "detection.json"
     detection.save(report, path)
     back = detection.load(path)

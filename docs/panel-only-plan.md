@@ -23,7 +23,7 @@ what you opted into by unlinking.
 
 ## 0. Two things in the backend block the panel
 
-This is not a QML problem. `mimarchy-ctl` cannot address a single zone:
+This is not a QML problem. `micachy-ctl` cannot address a single zone:
 
 | command | today | the panel needs |
 |---|---|---|
@@ -43,7 +43,7 @@ start.
 ### And the link is hard-coded to two names
 
 `lightd._linked_pair` decides membership with `key in ("cpu_fans", "gpu")`.
-Those are only what `mimarchy-setup` *suggests* from the device kind — the user
+Those are only what `micachy-setup` *suggests* from the device kind — the user
 names their own zones, and a board-plus-strip rig never has a `gpu` at all. On
 any such machine the Link toggle flips, saves, and changes nothing:
 
@@ -70,15 +70,15 @@ Two consequences to take deliberately:
   exactly the reason above. Use the first zone in config order: always present,
   stable across restarts, and independent of what anyone named anything.
 
-## Phase A — per-zone `mimarchy-ctl` (ships alone, no UI change)
+## Phase A — per-zone `micachy-ctl` (ships alone, no UI change)
 
 Add zone addressing to the three commands that change lighting:
 
-    mimarchy-ctl effect chase --zone gpu
-    mimarchy-ctl colour '#ff0044' --zone cpu_fans
-    mimarchy-ctl colour accent --zone strip      # role: follows the theme
-    mimarchy-ctl speed set 3 --zone gpu          # absolute, 1..speed_stops
-    mimarchy-ctl speed + --zone gpu              # the existing relative form
+    micachy-ctl effect chase --zone gpu
+    micachy-ctl colour '#ff0044' --zone cpu_fans
+    micachy-ctl colour accent --zone strip      # role: follows the theme
+    micachy-ctl speed set 3 --zone gpu          # absolute, 1..speed_stops
+    micachy-ctl speed + --zone gpu              # the existing relative form
 
 Notes that decide the shape:
 
@@ -101,7 +101,7 @@ same tests:
 - `_source_target` follows the first zone in config order rather than
   `cpu_fans`, so `lightd` needs the config's key order where it currently needs
   only a hard-coded pair.
-- `mimarchy-ctl link` keeps `on`/`off`/`toggle`; only its meaning widens. No CLI
+- `micachy-ctl link` keeps `on`/`off`/`toggle`; only its meaning widens. No CLI
   change, which is worth noting — this is a behaviour change with no syntax to
   deprecate.
 - `status --json` should say which zones are in the link, so the panel can label
@@ -118,7 +118,7 @@ Layout is *always open*, in two states that share every component.
 
 Linked — the default, and short whatever the zone count:
 
-    MIMARCHY                                   Settings
+    MICACHY                                   Settings
     Link all zones            driven together   [x]
     ───
     All zones                              rainbow
@@ -130,7 +130,7 @@ Linked — the default, and short whatever the zone count:
 
 Unlinked — one full block per zone:
 
-    MIMARCHY                                   Settings
+    MICACHY                                   Settings
     Link all zones      driven independently   [ ]
     ───
     cpu fans                              spectrum
@@ -192,24 +192,24 @@ The parts worth specifying now:
 Only after B is working, so there is never a commit where neither surface is
 complete.
 
-- Delete `src/mimarchy/tui.py` and `tests/test_tui.py` (≈940 lines).
-- Drop the `mimarchy-tui` entry point from `pyproject.toml`, and `textual` from
+- Delete `src/micachy/tui.py` and `tests/test_tui.py` (≈940 lines).
+- Drop the `micachy-tui` entry point from `pyproject.toml`, and `textual` from
   the dependencies — it is the TUI's alone.
-- Remove `bin/omarchy-launch-mimarchy`, `omarchy/mimarchy.lua` (the float rule),
+- Remove `bin/omarchy-launch-micachy`, `omarchy/micachy.lua` (the float rule),
   and the launcher symlink and Hyprland step from `install.sh`.
 - Rewrite the README: the install section, the key table, and the framing. The
   current opening — "a single-screen TUI" — becomes a bar widget, and the
   "runs anywhere, falls back to your terminal's colours" story goes with it.
-- `omarchy/mimarchy-menu.jsonc` currently launches the TUI. Point it at the
+- `omarchy/micachy-menu.jsonc` currently launches the TUI. Point it at the
   panel instead.
 - **Ship a keybinding suggestion in its place.** The stock bindings are all
   `o.bind("SUPER + CTRL + B", "Bluetooth", "omarchy-shell shell toggle
   omarchy.bluetooth")`, and the generic form works for a third-party id —
-  verified with `omarchy-shell shell toggle io.github.villenull.mimarchy`. That
-  is the direct replacement for `omarchy-launch-mimarchy`, and it means the
+  verified with `omarchy-shell shell toggle io.github.villenull.micachy`. That
+  is the direct replacement for `omarchy-launch-micachy`, and it means the
   Hyprland float rule retires with the window it was floating.
 
-**What survives, and should be said out loud:** `mimarchy-ctl` becomes the only
+**What survives, and should be said out loud:** `micachy-ctl` becomes the only
 interface that works over SSH or on a machine without Omarchy. Phase A is what
 makes that acceptable rather than a regression — after it, the CLI can do
 everything the TUI could.

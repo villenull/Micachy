@@ -1,8 +1,8 @@
-"""Tests for `mimarchy-setup`, the wizard that makes this run on other people's rigs.
+"""Tests for `micachy-setup`, the wizard that makes this run on other people's rigs.
 
 Everything here runs against faked drivers and a `tmp_path` config, so a
 run cannot reach the real hidraw nodes, the real I2C buses, or the real
-`~/.config/mimarchy/config.toml`. The fakes are shaped like the driver's
+`~/.config/micachy/config.toml`. The fakes are shaped like the driver's
 answers — Aura channels plus Nitro presence — since a fake built from the
 code's assumptions cannot catch a wrong assumption.
 
@@ -21,9 +21,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import hidraw  # noqa: E402
-from mimarchy import setup  # noqa: E402
-from mimarchy.config import load_config  # noqa: E402
+from micachy import hidraw  # noqa: E402
+from micachy import setup  # noqa: E402
+from micachy.config import load_config  # noqa: E402
 
 
 def board_and_card() -> list[setup.DetectedDevice]:
@@ -300,7 +300,7 @@ class TestWrittenFile:
         text = config.read_text()
 
         assert "rainbow shows a quarter of the hue wheel" in text
-        assert "mimarchy-setup --list" in text
+        assert "micachy-setup --list" in text
         assert "channel index" in text
 
     def test_no_detector_allowlist_is_written(self, monkeypatch, tmp_path,

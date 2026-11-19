@@ -10,14 +10,14 @@ from pathlib import Path
 
 _CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
 
-CONFIG_PATH = _CONFIG_HOME / "mimarchy" / "config.toml"
+CONFIG_PATH = _CONFIG_HOME / "micachy" / "config.toml"
 
 DEFAULT_CONFIG = """\
-# Mimarchy config. Hand-editable, and meant to be read as well as edited — the
+# Micachy config. Hand-editable, and meant to be read as well as edited — the
 # comments are why each value is what it is.
 #
-# `mimarchy-setup` writes this file for you from the controllers it finds,
-# which is easier than guessing device names. `mimarchy-setup --list` prints
+# `micachy-setup` writes this file for you from the controllers it finds,
+# which is easier than guessing device names. `micachy-setup --list` prints
 # the channels and zones without changing anything.
 
 [rgb]
@@ -31,9 +31,9 @@ DEFAULT_CONFIG = """\
 zone_size = 15
 
 # The zones to drive. `cpu_fans` is an Aura channel on the motherboard
-# (see mimarchy/aura.py); `gpu` is the Nitro card's bar (see mimarchy/nitro.py).
+# (see micachy/aura.py); `gpu` is the Nitro card's bar (see micachy/nitro.py).
 # `device` is kept for display and matching, `zone` is the channel index within
-# that controller. Run `mimarchy-setup --list` to see yours.
+# that controller. Run `micachy-setup --list` to see yours.
 #
 # Add as many as you have: the daemon renders every zone listed here, and the
 # names are yours to choose. Only list zones you have something plugged into —
@@ -57,7 +57,7 @@ link_cpu_gpu = true
 [display]
 # CPU cooler display controller. usb.ids mislabels this as an "MSR-101U magnetic
 # card reader" — the ID is cloned and also used by USB relay boards. Needs
-# udev/99-mimarchy.rules installed, or its hidraw node is root-only.
+# udev/99-micachy.rules installed, or its hidraw node is root-only.
 vendor_id = 0x5131
 product_id = 0x2007
 """
@@ -138,7 +138,7 @@ def _zones(raw: dict) -> dict[str, RGBZoneConfig]:
                 leds=int(leds) if leds is not None else None,
             )
         except (AttributeError, KeyError, TypeError, ValueError) as exc:
-            print(f"mimarchy: ignoring [rgb.zones.{name}] — needs a `device` "
+            print(f"micachy: ignoring [rgb.zones.{name}] — needs a `device` "
                   f"name and a `zone` index ({exc})", file=sys.stderr)
     return zones
 

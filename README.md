@@ -1,4 +1,4 @@
-# Mimarchy
+# Micachy
 
 **Omarchy-native LED control for CPU cooler fans and GPU.**
 
@@ -13,8 +13,8 @@ display is driven directly over HID with a protocol reverse-engineered for it.
 
 Runs on **Omarchy 4**.
 
-![Mimarchy panel, linked](docs/panel-linked.png)
-![Mimarchy panel, unlinked](docs/panel-unlinked.png)
+![Micachy panel, linked](docs/panel-linked.png)
+![Micachy panel, unlinked](docs/panel-unlinked.png)
 
 Above: every zone linked, one shared set of controls. Below: unlinked, one
 block per zone. Both are the panel itself — there is nothing behind it.
@@ -33,9 +33,9 @@ block per zone. Both are the panel itself — there is nothing behind it.
 ## Hardware
 
 Developed against an ASUS PRIME X870-P WIFI, a Sapphire RX 9070 XT Nitro+, and
-a Balam Rush Heliux Pro HEX75 cooler. `mimarchy-setup` finds your devices and
+a Balam Rush Heliux Pro HEX75 cooler. `micachy-setup` finds your devices and
 writes the config for you — it lists every detected zone, asks which ones to
-drive and how long each strip is. `mimarchy-setup --list` prints what it sees
+drive and how long each strip is. `micachy-setup --list` prints what it sees
 without changing anything, which is also the right thing to paste into a bug
 report. The cooler display is specific to that USB device (`5131:2007`).
 
@@ -48,7 +48,7 @@ report. The cooler display is specific to that USB device (`5131:2007`).
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/villenull/mimarchy --enable
+omarchy plugin add https://github.com/villenull/micachy --enable
 ```
 
 That is the entire install: the panel starts the backend itself, from the
@@ -58,7 +58,7 @@ current, so there is a single copy on disk.
 The cooler display and the Aura controller sit on root-only hidraw nodes, the
 one thing the plugin cannot do for itself. Root writes exactly the two lines
 you can read here — not a file from this user-writable checkout
-(`udev/99-mimarchy.rules` keeps the same two lines for reference; a test
+(`udev/99-micachy.rules` keeps the same two lines for reference; a test
 asserts they never drift). The card needs no rule: its LED controller hangs
 off I2C adapters that already carry uaccess.
 
@@ -66,7 +66,7 @@ off I2C adapters that already carry uaccess.
 printf '%s\n' \
   'SUBSYSTEM=="hidraw", ATTRS{idVendor}=="5131", ATTRS{idProduct}=="2007", TAG+="uaccess", RUN{builtin}+="uaccess", GROUP="input", MODE="0660"' \
   'SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0b05", ATTRS{idProduct}=="19af", TAG+="uaccess", RUN{builtin}+="uaccess", GROUP="input", MODE="0660"' \
-  | sudo tee /etc/udev/rules.d/99-mimarchy.rules >/dev/null
+  | sudo tee /etc/udev/rules.d/99-micachy.rules >/dev/null
 sudo udevadm control --reload-rules
 sudo udevadm trigger --action=add --subsystem-match=hidraw
 ```
@@ -79,29 +79,29 @@ expecting light. `bin/` is not on PATH, so it is invoked through the system
 interpreter with the plugin path spelled out:
 
 ```bash
-/usr/bin/python3 ~/.config/omarchy/plugins/io.github.villenull.mimarchy/bin/mimarchy-setup
+/usr/bin/python3 ~/.config/omarchy/plugins/io.github.villenull.micachy/bin/micachy-setup
 ```
 
 It lists every detected zone, asks which ones to drive and how long each
 strip is, and writes the config; the lighting daemon picks the new file up
-on its next poll. `/usr/bin/python3 .../bin/mimarchy-setup --list` prints
+on its next poll. `/usr/bin/python3 .../bin/micachy-setup --list` prints
 what it sees without changing anything, which is also the right thing to
 paste into a bug report.
 
 Headless or no Omarchy desktop: run the backend directly from the checkout —
-`/usr/bin/python3 bin/mimarchy-lightd` renders the lighting,
-`/usr/bin/python3 bin/mimarchy-displayd` streams the cooler display, and
-`/usr/bin/python3 bin/mimarchy-ctl status` (or `--json`) reports both.
+`/usr/bin/python3 bin/micachy-lightd` renders the lighting,
+`/usr/bin/python3 bin/micachy-displayd` streams the cooler display, and
+`/usr/bin/python3 bin/micachy-ctl status` (or `--json`) reports both.
 
-Uninstall: `omarchy plugin remove io.github.villenull.mimarchy` stops the
+Uninstall: `omarchy plugin remove io.github.villenull.micachy` stops the
 panel and its daemons and removes the checkout. Optionally also remove the
-rule (`sudo rm /etc/udev/rules.d/99-mimarchy.rules`, then reload udev);
+rule (`sudo rm /etc/udev/rules.d/99-micachy.rules`, then reload udev);
 nothing else was ever installed outside the plugin folder.
 
 Requires Python 3.11+ and a running Wayland session; the backend itself is
 stdlib-only, so there is nothing else to install. Fan RPM additionally needs
 the kernel's own `nct6775` driver loaded — temperatures and lighting work
-without it. Until it is loaded, `mimarchy-ctl status` says so by name rather
+without it. Until it is loaded, `micachy-ctl status` says so by name rather
 than dropping the reading:
 
     fan: NOT DETECTED — the nct6775 driver is not loaded, so no CPU fan
@@ -155,7 +155,7 @@ CTRL + B` for Bluetooth, `SUPER + CTRL + D` for Display, and so on — so this
 follows it:
 
 ```lua
-o.bind("SUPER + CTRL + M", "Mimarchy", "omarchy-shell shell toggle io.github.villenull.mimarchy")
+o.bind("SUPER + CTRL + M", "Micachy", "omarchy-shell shell toggle io.github.villenull.micachy")
 ```
 
 in `~/.config/hypr/hyprland.lua`. `SUPER + CTRL + <letter>` is claimed for
@@ -169,7 +169,7 @@ One optional extra:
 
 | File | Merge into | Gives you |
 |---|---|---|
-| [`omarchy/mimarchy-menu.jsonc`](omarchy/mimarchy-menu.jsonc) | `~/.config/omarchy/extensions/omarchy-menu.jsonc` | Mimarchy in the Omarchy menu and its search |
+| [`omarchy/micachy-menu.jsonc`](omarchy/micachy-menu.jsonc) | `~/.config/omarchy/extensions/omarchy-menu.jsonc` | Micachy in the Omarchy menu and its search |
 
 ## Keys
 
@@ -198,20 +198,20 @@ cursor the user may not have summoned yet. The first press of a movement key
 only reveals the cursor rather than moving it, so it never jumps in from
 off-screen.
 
-## mimarchy-ctl
+## micachy-ctl
 
-The panel is not the only interface. `mimarchy-ctl` drives the same state from
+The panel is not the only interface. `micachy-ctl` drives the same state from
 a script, a Hyprland keybinding, an SSH session, or a machine with no Omarchy
 desktop at all — and it is exactly what the panel itself calls, rather than
 reaching into the state file directly.
 
 ```bash
-/usr/bin/python3 bin/mimarchy-ctl status            # or --json, which is what the widget reads
-/usr/bin/python3 bin/mimarchy-ctl effect rainbow
-/usr/bin/python3 bin/mimarchy-ctl speed +           # or -
-/usr/bin/python3 bin/mimarchy-ctl colour accent     # follow the theme; or green, red, ... or #ff0044
-/usr/bin/python3 bin/mimarchy-ctl display toggle    # on / off / toggle
-/usr/bin/python3 bin/mimarchy-ctl link toggle
+/usr/bin/python3 bin/micachy-ctl status            # or --json, which is what the widget reads
+/usr/bin/python3 bin/micachy-ctl effect rainbow
+/usr/bin/python3 bin/micachy-ctl speed +           # or -
+/usr/bin/python3 bin/micachy-ctl colour accent     # follow the theme; or green, red, ... or #ff0044
+/usr/bin/python3 bin/micachy-ctl display toggle    # on / off / toggle
+/usr/bin/python3 bin/micachy-ctl link toggle
 ```
 
 (From the plugin checkout; `bin/` is not on PATH, so the system interpreter
@@ -219,7 +219,7 @@ is named outright.)
 
 Writes go through an atomic write-then-rename, so a panel click and a scripted
 write cannot interleave into a half-written file. Nothing here talks to
-hardware; `mimarchy-lightd` still owns that.
+hardware; `micachy-lightd` still owns that.
 
 `status` also reports what the daemon actually found: a configured zone whose
 controller did not answer shows as `gpu: NOT DETECTED` (and as `missing_zones`
@@ -236,8 +236,8 @@ row, ahead of the seven fixed colours. The state file stores the role, so it
 keeps following across reboots.
 
 The lighting daemon keeps a hook in `~/.config/omarchy/hooks/theme-set.d/`
-pointing at `omarchy/theme-set.d/mimarchy`, which calls
-`bin/mimarchy-ctl reload-theme` after a theme switch; the daemon picks the new
+pointing at `omarchy/theme-set.d/micachy`, which calls
+`bin/micachy-ctl reload-theme` after a theme switch; the daemon picks the new
 colour up on its next frame, so the strips change with the wallpaper rather than
 on the next reboot. Fixed hex colours are never touched by it.
 

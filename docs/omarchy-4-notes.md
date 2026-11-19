@@ -42,7 +42,7 @@ inferred:
   properties; the `PanelKeyCatcher`-wrapping-a-`Column` structure matches
   `bluetooth/Panel.qml` line for line. `fittedContentWidth(width, cap)` takes
   an optional cap, so the single-argument call is correct.
-- **Launching the TUI.** `root.bar.run("omarchy-launch-mimarchy")` is exactly
+- **Launching the TUI.** `root.bar.run("omarchy-launch-micachy")` is exactly
   what `shell/plugins/agents/Panel.qml` does; `Bar.run(command)` takes a
   string and hands it to `Util.execDetached`.
 
@@ -62,15 +62,15 @@ engine's, not the file's.
 
 `~/.config/omarchy/hooks/theme-set.d/` is correct, and the runner passes the
 theme slug as `$1` (`default/agents/skills/omarchy/hooks.md`). Our hook ignores
-the argument deliberately — see the comment in `omarchy/theme-set.d/mimarchy`.
+the argument deliberately — see the comment in `omarchy/theme-set.d/micachy`.
 Omarchy also ships `omarchy hook install <name> <script>`, which is the same
 copy-and-chmod `install.sh` does inline.
 
 ### The launcher chain
 
 `omarchy-launch-or-focus-tui` exists in v4 and derives its app-id as
-`org.omarchy.$(basename "$1")` — so `omarchy-launch-or-focus-tui mimarchy-tui`
-yields `org.omarchy.mimarchy-tui`, which is the id the Hyprland rule matches.
+`org.omarchy.$(basename "$1")` — so `omarchy-launch-or-focus-tui micachy-tui`
+yields `org.omarchy.micachy-tui`, which is the id the Hyprland rule matches.
 
 ### The Hyprland rule and the menu entry
 
@@ -117,7 +117,7 @@ reloading` with no QML error of any kind, and `omarchy plugin list` reported
 `enabled`. `omarchy-shell shell debugBarGeometry` is what actually told the
 truth:
 
-    io.github.villenull.mimarchy   x=3216  w=0  h=0  visible=false  itemVisible=true
+    io.github.villenull.micachy   x=3216  w=0  h=0  visible=false  itemVisible=true
 
 The component instantiated; it was laid out at zero size. `Ui/Panel` is a bare
 `Item` and has no implicit size of its own, and the root bound none — so the
@@ -164,25 +164,25 @@ The wiring itself is the same as every first-party panel: `KeyboardPanel` with
 summoned by key at all — an xdg-popup only receives keys after a click routes
 focus through its parent surface, so it primes `WlrKeyboardFocus.Exclusive`
 briefly on map. And the stock summon idiom works for a third-party id, checked
-with `omarchy-shell shell toggle io.github.villenull.mimarchy`.
+with `omarchy-shell shell toggle io.github.villenull.micachy`.
 
 ### What the live run confirmed
 
-- **Both icon states.** Dimmed with `mimarchy-light.service` stopped, full
+- **Both icon states.** Dimmed with `micachy-light.service` stopped, full
   brightness with it running, at the same size and family as its neighbours —
   which is the `text` + `dimmed` fix drawn through `WidgetButton` rather than an
   `iconComponent`.
 - **The panel**, on a horizontal top bar: header, all three zones with effect
   and speed, the sensor row, both toggles and the launch button, in theme
-  colours. It updates live — `mimarchy-ctl link toggle` and `effect chase` were
+  colours. It updates live — `micachy-ctl link toggle` and `effect chase` were
   both reflected without touching the panel.
-- **Three zones through the whole stack.** `mimarchy-setup` wrote a config for a
+- **Three zones through the whole stack.** `micachy-setup` wrote a config for a
   board zone, a GPU zone and a *third* strip at a different length (20 vs 15),
   the daemon resized each to its own length, and all three appear in the widget.
 - **Graceful degradation, twice.** `openrgb.service` fails to start with no
-  OpenRGB installed and `mimarchy-light.service` runs anyway — `Wants=` is
+  OpenRGB installed and `micachy-light.service` runs anyway — `Wants=` is
   correctly not `Requires=`. And with no `nct6687d`, fan RPM reads `null` from
-  `mimarchy-ctl` and `fan —` in the panel rather than a zero.
+  `micachy-ctl` and `fan —` in the panel rather than a zero.
 - **The v4 theme reader, on live themes.** `theme_dirs()` puts the state path
   first and parses the active theme; all 22 stock themes on the machine parse as
   v4, five of them light with `mode`. The only `led_colour` gaps are `orange` on
@@ -225,11 +225,11 @@ the interesting branch was taken.
    Needs the LEDs.
 5. **A user-installed theme's `colors.toml`.** The machine has only the 22 stock
    themes.
-6. **`omarchy-launch-mimarchy`** — that it opens in Foot and floats.
+6. **`omarchy-launch-micachy`** — that it opens in Foot and floats.
 
 ## Running the test session
 
-`omarchy plugin add https://github.com/villenull/mimarchy` **does not work
+`omarchy plugin add https://github.com/villenull/micachy` **does not work
 yet**, and it is worth knowing why before trying it: `omarchy-plugin-add` runs
 a bare `git clone` of the URL, which takes the repo's default branch. `main` is
 still the pre-upgrade release — no `manifest.json` — so validation refuses it.
@@ -237,15 +237,15 @@ That resolves itself when this branch merges; until then, add from a local
 checkout, which `git clone` accepts as a URL:
 
     git clone -b claude/omarchy-4-upgrade-plan-ezgh0h \
-      https://github.com/villenull/mimarchy ~/mimarchy
+      https://github.com/villenull/micachy ~/micachy
 
-    ~/mimarchy/install.sh          # venv, services, theme hook, symlinks
-    mimarchy-ctl status            # backend works before the widget is involved
+    ~/micachy/install.sh          # venv, services, theme hook, symlinks
+    micachy-ctl status            # backend works before the widget is involved
 
-    omarchy plugin add ~/mimarchy --enable
+    omarchy plugin add ~/micachy --enable
 
 `install.sh` needs `openrgb` present and stops with instructions if it is not.
-It builds the virtualenv in `~/.local/share/mimarchy/`, never in the checkout.
+It builds the virtualenv in `~/.local/share/micachy/`, never in the checkout.
 
 Two things make iterating cheap once it is loaded. Saving any file under
 `~/.config/omarchy/plugins/` hot-reloads the plugin, so QML fixes land without

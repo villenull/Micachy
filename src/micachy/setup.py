@@ -1,4 +1,4 @@
-"""`mimarchy-setup` — point Mimarchy at whatever LEDs this machine actually has.
+"""`micachy-setup` — point Micachy at whatever LEDs this machine actually has.
 
 `config.toml` accepts arbitrary hardware: each zone names a controller channel,
 so a different board and a different card are only ever a text edit away. The
@@ -16,8 +16,8 @@ Two things it deliberately does *not* do:
   (`5131:2007`) and there is nothing to discover: either the device is present
   or it is not.
 
-    mimarchy-setup --list      # what the controllers report, changes nothing
-    mimarchy-setup             # the wizard
+    micachy-setup --list      # what the controllers report, changes nothing
+    micachy-setup             # the wizard
 """
 
 from __future__ import annotations
@@ -29,12 +29,12 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from mimarchy import aura as aura_mod
-from mimarchy import hidraw
-from mimarchy import nitro as nitro_mod
-from mimarchy import smbus
-from mimarchy.config import CONFIG_PATH, Config, load_config
-from mimarchy.rgb import RGBError
+from micachy import aura as aura_mod
+from micachy import hidraw
+from micachy import nitro as nitro_mod
+from micachy import smbus
+from micachy.config import CONFIG_PATH, Config, load_config
+from micachy.rgb import RGBError
 
 #: Names that make the CPU/GPU link work without the user knowing it exists.
 #: Linking joins every configured zone (see `lightd._source_target`), so it works
@@ -187,7 +187,7 @@ Two things to check, in this order:
 * Permissions — the Aura board speaks over a hidraw node that is root-only
   until the udev rule is installed:
 
-    sudo cp udev/99-mimarchy.rules /etc/udev/rules.d/
+    sudo cp udev/99-micachy.rules /etc/udev/rules.d/
     sudo udevadm control --reload-rules && sudo udevadm trigger
 
   Then unplug and re-plug the board's USB, or reboot.
@@ -231,7 +231,7 @@ def _lookup(devices: list[DetectedDevice], answer: str) -> tuple[DetectedDevice,
 def prompt_zones(devices: list[DetectedDevice], ask, out=print) -> list[Selection]:
     """Ask which zones to drive, until the user says that is all of them."""
     selections: list[Selection] = []
-    out("Which zones should Mimarchy drive? Enter them as device.zone — 0.1 is "
+    out("Which zones should Micachy drive? Enter them as device.zone — 0.1 is "
         "zone 1 of device 0.")
     out("Press return on an empty line when you are done.\n")
 
@@ -319,7 +319,7 @@ def render_config(selections: list[Selection],
     linked = existing.link_cpu_gpu if existing else True
 
     lines = [
-        "# Mimarchy config, written by `mimarchy-setup`.",
+        "# Micachy config, written by `micachy-setup`.",
         "#",
         "# Hand-editable from here on: re-running the wizard rewrites the file "
         "(keeping a",
@@ -341,7 +341,7 @@ def render_config(selections: list[Selection],
     lines += [
         "# The zones to drive. `device` names the controller for a person "
         "reading this",
-        "# file; `zone` is the channel index within it — `mimarchy-setup --list`",
+        "# file; `zone` is the channel index within it — `micachy-setup --list`",
         "# prints both. `leds` overrides `zone_size` for one zone.",
         "#",
         "# Add as many as you have — the daemon renders every zone listed here.",
@@ -366,7 +366,7 @@ def render_config(selections: list[Selection],
         '"MSR-101U magnetic',
         "# card reader\" — the ID is cloned and also used by USB relay boards. "
         "Needs",
-        "# udev/99-mimarchy.rules installed, or its hidraw node is root-only.",
+        "# udev/99-micachy.rules installed, or its hidraw node is root-only.",
         "#",
         "# Harmless to leave here if you have no such panel: the display "
         "service simply",
@@ -426,7 +426,7 @@ def cmd_setup(args: argparse.Namespace, ask) -> int:
 
     print("\nWrote the config. The panel starts the lighting daemon itself, so")
     print("it picks the new zones up on its next status poll; a headless")
-    print("mimarchy-lightd needs a restart to re-read the file.")
+    print("micachy-lightd needs a restart to re-read the file.")
     return 0
 
 
@@ -449,8 +449,8 @@ def _existing(path: Path) -> Config | None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="mimarchy-setup",
-        description="Find your LED zones and write Mimarchy's config for them.",
+        prog="micachy-setup",
+        description="Find your LED zones and write Micachy's config for them.",
     )
     parser.add_argument("--list", action="store_true",
                         help="print the detected devices and zones, and exit")
@@ -463,7 +463,7 @@ def main(argv: list[str] | None = None, ask=input) -> int:
     args = build_parser().parse_args(argv)
 
     if not args.list and ask is input and not sys.stdin.isatty():
-        print("mimarchy-setup needs a terminal to ask questions. "
+        print("micachy-setup needs a terminal to ask questions. "
               "Use --list for a listing.", file=sys.stderr)
         return 2
 

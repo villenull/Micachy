@@ -2,15 +2,15 @@
 
 Why a pidfile and not a socket: the same reasons `lightstate` cites for its
 state file. The daemons have to survive the process that started them — the
-panel spawns them and goes back to polling, and `mimarchy-ctl` is a one-shot
+panel spawns them and goes back to polling, and `micachy-ctl` is a one-shot
 process that exits immediately — so there is nobody to hold the other end of
 a socket. The payload is a single pid, which needs no framing, no port, and
 no event loop. And a pidfile degrades honestly: a stale entry points at a
 dead pid or a recycled one, and `/proc` tells those apart from a live owner,
 so "is it running" never needs a second channel.
 
-Layout is `$XDG_RUNTIME_DIR/mimarchy-lightd.pid` and
-`$XDG_RUNTIME_DIR/mimarchy-displayd.pid`, with the same runtime-dir fallback
+Layout is `$XDG_RUNTIME_DIR/micachy-lightd.pid` and
+`$XDG_RUNTIME_DIR/micachy-displayd.pid`, with the same runtime-dir fallback
 as `lightstate.STATE_PATH` (the runtime dir when set, otherwise the config
 home). The runtime dir is cleared on logout, so a pidfile can never claim a
 daemon survived a reboot.
@@ -21,7 +21,7 @@ with the owner pid on stderr keeps the panel's restart backoff from
 mistaking a healthy already-running daemon for a crash loop.
 
 Fatal daemon exits (no device, no permission) additionally write a
-`mimarchy-<name>.note` file: one line telling the user what to do, which is
+`micachy-<name>.note` file: one line telling the user what to do, which is
 what `ctl status` surfaces as `daemon_note`. The note is cleared on the next
 successful start, so it can never describe a daemon that is currently fine.
 """
@@ -39,7 +39,7 @@ from pathlib import Path
 #: controller tells the user exactly this instead of a bare Errno 13.
 UDEV_NOTE = (
     "The LED hidraw node is root-only until the udev rule lands: "
-    "sudo cp udev/99-mimarchy.rules /etc/udev/rules.d/ "
+    "sudo cp udev/99-micachy.rules /etc/udev/rules.d/ "
     "&& sudo udevadm control --reload-rules && sudo udevadm trigger, "
     "then re-plug the device (see README)."
 )
@@ -56,21 +56,21 @@ def _runtime_dir() -> Path:
 
 
 def _pidfile(name: str) -> Path:
-    return _runtime_dir() / f"mimarchy-{name}.pid"
+    return _runtime_dir() / f"micachy-{name}.pid"
 
 
 def _notefile(name: str) -> Path:
-    return _runtime_dir() / f"mimarchy-{name}.note"
+    return _runtime_dir() / f"micachy-{name}.note"
 
 
 def daemon_script(name: str) -> Path:
-    """The `bin/mimarchy-<name>` launcher, resolved from this file's real path.
+    """The `bin/micachy-<name>` launcher, resolved from this file's real path.
 
-    The panel and `mimarchy-ctl` both spawn daemons through this, so a
+    The panel and `micachy-ctl` both spawn daemons through this, so a
     checkout, a plugin clone, and an installed copy all start the backend
     they sit next to rather than whatever happens to be on `$PATH`.
     """
-    return Path(__file__).resolve().parents[2] / "bin" / f"mimarchy-{name}"
+    return Path(__file__).resolve().parents[2] / "bin" / f"micachy-{name}"
 
 
 def owner_pid(name: str) -> int | None:
@@ -87,7 +87,7 @@ def daemon_alive(name: str, *, _proc_root: Path | None = None) -> bool:
     The pidfile alone cannot answer this: the daemon may have died without
     removing it, and its pid may since have been recycled by an unrelated
     process. So a pid only counts when `/proc/<pid>/cmdline` still names the
-    daemon's launcher (`mimarchy-lightd` / `mimarchy-displayd`). Anything
+    daemon's launcher (`micachy-lightd` / `micachy-displayd`). Anything
     else — missing file, dead pid, recycled pid — is "not running", never an
     error, because the CLI is routinely run where no daemon was ever started.
 
@@ -101,7 +101,7 @@ def daemon_alive(name: str, *, _proc_root: Path | None = None) -> bool:
         parts = ((_proc_root or Path("/proc")) / str(pid) / "cmdline").read_bytes()
     except OSError:
         return False
-    marker = f"mimarchy-{name}".encode()
+    marker = f"micachy-{name}".encode()
     return marker in parts
 
 
@@ -132,7 +132,7 @@ def stop_daemon(name: str, *, _proc_root: Path | None = None) -> str | None:
     pid = owner_pid(name)
     if pid is None:  # pragma: no cover — the pidfile changed mid-call
         return None
-    marker = f"mimarchy-{name}"
+    marker = f"micachy-{name}"
     try:
         os.kill(pid, signal.SIGTERM)
     except ProcessLookupError:
@@ -214,11 +214,11 @@ def ensure_theme_hook() -> None:
             Path(__file__).resolve().parents[2]
             / "omarchy"
             / "theme-set.d"
-            / "mimarchy"
+            / "micachy"
         )
         if not target.is_file():
             return
-        dest = config_home / "omarchy" / "hooks" / "theme-set.d" / "mimarchy"
+        dest = config_home / "omarchy" / "hooks" / "theme-set.d" / "micachy"
         if dest.is_symlink() and dest.readlink() == target:
             return
         dest.parent.mkdir(parents=True, exist_ok=True)

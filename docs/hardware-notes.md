@@ -3,7 +3,7 @@
 Why the code is shaped the way it is, and the handful of things about this
 hardware that are not obvious. Everything here was measured on the device.
 
-For what Mimarchy is and how to install it, see the [README](../README.md).
+For what Micachy is and how to install it, see the [README](../README.md).
 
 ## ARGB
 
@@ -17,14 +17,14 @@ worse than it sounds, because spatial effects span the zone rather than the LEDs
 — at 60 on a 15-LED strip, rainbow shows a quarter of the hue wheel and is
 indistinguishable from spectrum.
 
-**Colour is written in a direct-drive mode.** `mimarchy/aura.py` puts the
-board's channels in Direct and `mimarchy/nitro.py` puts the card in
+**Colour is written in a direct-drive mode.** `micachy/aura.py` puts the
+board's channels in Direct and `micachy/nitro.py` puts the card in
 External Control before writing colours; a controller left in an effect mode
 keeps running its own animation and ignores the frame.
 
 **Two independent controllers.** The motherboard's Aura chip is USB HID
-(`0b05:19af`, `src/mimarchy/aura.py`); the GPU has its own reached over I2C
-*on the card* (`/dev/i2c-7`, address `0x28`, `src/mimarchy/nitro.py`).
+(`0b05:19af`, `src/micachy/aura.py`); the GPU has its own reached over I2C
+*on the card* (`/dev/i2c-7`, address `0x28`, `src/micachy/nitro.py`).
 Different hardware, different buses.
 
 **If the card vanishes, check the bus before anything else.**
@@ -39,7 +39,7 @@ in a few milliseconds:
 A silent controller is the microcontroller itself, not the driver stack. The
 slot's standby rail keeps it powered through reboots and shutdowns, so the
 reset is a cold boot: power off, PSU switch off for ~30 s, power on.
-`mimarchy-ctl status` now says `gpu: NOT DETECTED` in that state, and the
+`micachy-ctl status` now says `gpu: NOT DETECTED` in that state, and the
 daemon logs it at startup, so it is no longer something to discover a week
 later (`docs/gpu-incident-2026-09.md`).
 
@@ -55,15 +55,15 @@ GPU/I2C detection could hard-freeze this machine
 ([#4888](https://gitlab.com/CalcProgrammer1/OpenRGB/-/issues/4888), open) —
 so the install narrowed its detector list before the server ever started,
 and the config carried a `detectors = [...]` allowlist. Since 0.5.0 both
-controllers are driven directly (`src/mimarchy/aura.py` over hidraw,
-`src/mimarchy/nitro.py` over I2C), which only ever touches the board's own
+controllers are driven directly (`src/micachy/aura.py` over hidraw,
+`src/micachy/nitro.py` over I2C), which only ever touches the board's own
 USB device and the card's own bus: there is nothing to narrow and no server
 to order around. `load_config` still tolerates old files that contain a
 `detectors` key, and ignores it.
 
 ## Effects are rendered in software, not by the controllers
 
-`mimarchy-lightd` renders every effect itself and writes per-LED colours to both
+`micachy-lightd` renders every effect itself and writes per-LED colours to both
 devices from one clock. The controllers' own effect modes could not be made to
 work together:
 
@@ -101,7 +101,7 @@ strand a zone), and writes a one-LED zone at most ten times a second: one
 flat colour stepping at 10 Hz is indistinguishable from 30, since there is
 no spatial motion to smooth, and the strip keeps the full rate. Memory is
 25–45 MB resident; the "8 % RAM" a system monitor shows is virtual address
-space from mapping the GPU. `mimarchy-lightd --fps 20` remains available but
+space from mapping the GPU. `micachy-lightd --fps 20` remains available but
 no longer buys much.
 
 ### Except on the GPU, which is one LED
@@ -169,7 +169,7 @@ Its hidraw node is opened through a logind `uaccess` ACL, not a group: Omarchy
 4 removes users from `input` (raw access to every keyboard), which is how the
 display silently went root-only after the first reboot following that
 migration. The rule runs the `uaccess` builtin itself because 73-seat-late.rules
-acts on the tag before a 99- rule has set it — see `udev/99-mimarchy.rules`.
+acts on the tag before a 99- rule has set it — see `udev/99-micachy.rules`.
 
 **There is no off command.** The panel lights because frames arrive and blanks on
 a firmware timeout once they stop, which is why the module exposes a run loop
@@ -186,10 +186,10 @@ runs at sigma 0.02 and 0.04. Sending frames faster does not shorten it.
 ## Testing without the hardware
 
 There is no stub backend. On a machine without the hardware,
-`mimarchy-setup --list` reports what the drivers find (nothing, without the
-devices — the board's side lives in `src/mimarchy/aura.py`, the card's in
-`src/mimarchy/nitro.py`), and `mimarchy-lightd --once` logs the frames it
+`micachy-setup --list` reports what the drivers find (nothing, without the
+devices — the board's side lives in `src/micachy/aura.py`, the card's in
+`src/micachy/nitro.py`), and `micachy-lightd --once` logs the frames it
 would write. Daemon liveness is a pidfile singleton under `$XDG_RUNTIME_DIR`
-(`mimarchy-lightd.pid`, `mimarchy-displayd.pid`); a daemon that exits because
-no device answered leaves a one-line user action in `mimarchy-<name>.note`
-beside it, which `mimarchy-ctl status` surfaces as `daemon_note`.
+(`micachy-lightd.pid`, `micachy-displayd.pid`); a daemon that exits because
+no device answered leaves a one-line user action in `micachy-<name>.note`
+beside it, which `micachy-ctl status` surfaces as `daemon_note`.

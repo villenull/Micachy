@@ -91,7 +91,7 @@ def test_the_button_fills_the_root(source: str) -> None:
 
 
 def test_a_backend_that_never_starts_is_detected(source: str) -> None:
-    """`onExited` alone cannot see a missing `mimarchy-ctl`.
+    """`onExited` alone cannot see a missing `micachy-ctl`.
 
     Quickshell does not run the command through a shell, so there is no exit
     127 to catch: a binary that is not on PATH emits neither `started` nor
@@ -167,7 +167,7 @@ def test_linked_issues_commands_without_a_zone(source: str) -> None:
 def test_speed_is_set_absolutely_rather_than_stepped(source: str) -> None:
     """Clicking the fourth stop has to land on four.
 
-    `mimarchy-ctl speed +` was the only speed verb the panel had, and it is
+    `micachy-ctl speed +` was the only speed verb the panel had, and it is
     still the right one for the `+`/`-` keys — the coarse every-zone path.
     Wiring the stops to it as well would make a click on stop 4 move one
     notch — a control that visibly disagrees with the click that drove it.
@@ -332,12 +332,12 @@ def test_the_cursor_is_clamped_rather_than_wrapped(source: str) -> None:
 def test_the_widget_no_longer_launches_a_window(source: str) -> None:
     """The panel is the whole surface now.
 
-    `omarchy-launch-mimarchy` still exists and is removed in its own phase;
+    `omarchy-launch-micachy` still exists and is removed in its own phase;
     what matters here is that the widget stopped being a launcher for it, so
     the button cannot come back by accident along with the Hyprland float
     rule that framed the window it opened.
     """
-    assert "omarchy-launch-mimarchy" not in source, (
+    assert "omarchy-launch-micachy" not in source, (
         "the panel still launches the TUI window it is meant to replace"
     )
 

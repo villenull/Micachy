@@ -1,4 +1,4 @@
-// Add Mimarchy to the Omarchy menu, for Omarchy 4.
+// Add Micachy to the Omarchy menu, for Omarchy 4.
 //
 // Merge this entry into ~/.config/omarchy/extensions/omarchy-menu.jsonc — that
 // file overlays the shipped menu, so nothing here is lost on an Omarchy update.
@@ -20,13 +20,13 @@
 // glyph has twice shipped as a codepoint that existed in the font but was not
 // the one anyone expected.
 {
-  "mimarchy": {
+  "micachy": {
     "icon": "󰌵",
-    "label": "Mimarchy",
+    "label": "Micachy",
     "description": "LEDs, sensors, cooler display",
-    "action": "omarchy-shell shell toggle io.github.villenull.mimarchy",
+    "action": "omarchy-shell shell toggle io.github.villenull.micachy",
     // Hide the row on a machine where the install has been removed, rather
     // than leaving a menu entry that opens nothing.
-    "when": "command -v mimarchy-ctl >/dev/null"
+    "when": "command -v micachy-ctl >/dev/null"
   }
 }

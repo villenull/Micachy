@@ -5,7 +5,7 @@ the bottom. Read `HANDOFF-2026-09.md` §4 first; this corrects it.
 
 ## What the OpenRGB logs in the uninstall backup show
 
-`~/mimarchy-uninstall-backup-20260904-111320.tar.gz` holds every OpenRGB log
+`~/micachy-uninstall-backup-20260904-111320.tar.gz` holds every OpenRGB log
 since the first install. The line that matters is
 `[Sapphire Radeon RX 9070 XT Nitro+] Registering RGB controller`:
 
@@ -20,8 +20,8 @@ since the first install. The line that matters is
 
 So the card was **already gone at the Aug 30 boot**, a day before the
 `openrgb.service` restart the handoff blamed. Whatever the LEDs were doing
-between Aug 30 and Aug 31 was the card's own firmware, not Mimarchy — the
-`mimarchy-light` journal for that boot only shows the usual "can't reach the
+between Aug 30 and Aug 31 was the card's own firmware, not Micachy — the
+`micachy-light` journal for that boot only shows the usual "can't reach the
 server yet" retry at startup, and `lighting.json` has every zone at `off`.
 
 The one thing that changed between the last working boot and the first
@@ -56,7 +56,7 @@ registered in any log. It was never on this machine.
 ## Session facts
 
 - Uninstall verified complete on arrival; the only leftover was a broken
-  `~/.local/bin/mimarchy-tui` symlink from an older version (removed).
+  `~/.local/bin/micachy-tui` symlink from an older version (removed).
 - `/dev/i2c-*` are `root:i2c 0660` with an ACL granting `huyke` rw
   (udev `uaccess`), so targeted probes need no root.
 - The webcam at `/dev/video0` (UGREEN 2K) was pointed at Diego's chair, not
@@ -101,12 +101,12 @@ would come from the Arch Linux Archive).
   `install.sh` then narrowed it to what `config.toml` needs — the three ASUS
   Aura detectors and the one Sapphire detector — and `--check` confirmed
   exactly that set before it enabled anything.
-- `~/.config/mimarchy/config.toml` restored from the backup **minus the
+- `~/.config/micachy/config.toml` restored from the backup **minus the
   `strip` zone**: the `Corsair Lighting Node Pro` it named never registered in
   any OpenRGB log, so it was a wizard leftover, not hardware. `lighting.json`
   likewise lost its `strip` target.
-- `install.sh` run from `~/mimarchy` (the venv is an editable install of that
-  checkout); `openrgb.service` and `mimarchy-light.service` enabled and
+- `install.sh` run from `~/micachy` (the venv is an editable install of that
+  checkout); `openrgb.service` and `micachy-light.service` enabled and
   running; SDK listener confirmed on `127.0.0.1:6742` only.
 - The udev rule for the cooler display installed by the printed command;
   `/dev/hidraw3` (`5131:2007`) is now `root:input 0660`.
@@ -115,10 +115,10 @@ would come from the Arch Linux Archive).
 What the fresh install sees, on this boot (card still absent, as expected
 before a cold boot):
 
-    mimarchy-setup --list   ->  1 device: ASUS PRIME X870-P WIFI
-    mimarchy-ctl status     ->  gpu: NOT DETECTED — no OpenRGB device matching
+    micachy-setup --list   ->  1 device: ASUS PRIME X870-P WIFI
+    micachy-ctl status     ->  gpu: NOT DETECTED — no OpenRGB device matching
                                 'Sapphire Radeon RX 9070 XT Nitro+'
-    journal (mimarchy-light) -> zone 'gpu' not detected: ... a cold boot
+    journal (micachy-light) -> zone 'gpu' not detected: ... a cold boot
                                 (power off at the PSU) is the known fix.
                                 rendering the zones that were found: cpu_fans
 
@@ -133,8 +133,8 @@ before its detection pass finishes; that is the race the new grace window in
 Nothing needs re-running: the services start at login with the narrowed
 list. In order:
 
-1. `mimarchy-ctl status` — the `gpu: NOT DETECTED` line should be gone.
-2. `mimarchy-setup --list` — two devices, the Sapphire card among them.
+1. `micachy-ctl status` — the `gpu: NOT DETECTED` line should be gone.
+2. `micachy-setup --list` — two devices, the Sapphire card among them.
 3. `i2cdetect -y -r 7 0x28 0x28` — `28` in the grid.
 4. Set an effect from the bar panel and watch the card follow it.
 
@@ -145,8 +145,8 @@ from the Arch Linux Archive and repeat step 3.
 ## Outcome (2026-09-04, afternoon)
 
 Diego cold-booted (PSU off). On the next boot `0x28` answers on bus 7,
-OpenRGB registers `Sapphire Radeon RX 9070 XT Nitro+` again, `mimarchy-setup
---list` shows both devices, and `mimarchy-ctl status` carries no
+OpenRGB registers `Sapphire Radeon RX 9070 XT Nitro+` again, `micachy-setup
+--list` shows both devices, and `micachy-ctl status` carries no
 `NOT DETECTED` line. Hypothesis 1 — a wedged LED microcontroller that only a
 power cut resets — is confirmed; the kernel was never involved.
 

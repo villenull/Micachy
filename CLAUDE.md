@@ -1,10 +1,17 @@
-# Mimarchy — notes for Claude Code sessions
+# Micachy — notes for Claude Code sessions
 
+- **Renamed from Mimarchy on 2026-11-18.** This repository
+  (villenull/Micachy) is the CachyOS line of what began as the Omarchy
+  plugin villenull/Mimarchy. The dated records in `docs/`
+  (`HANDOFF-2026-09.md`, `gpu-incident-2026-09.md`, `omarchy-4-plan.md`,
+  `omarchy-4-notes.md`, `panel-only-plan.md`) were left as written, so they
+  say Mimarchy and name paths like `src/mimarchy/`; read those as
+  `src/micachy/`.
 - **Start with `docs/HANDOFF-2026-09.md`.** It records the marketplace
-  submission (HANCORE-linux/omarchy-plugin-marketplace#2935), an unresolved
-  GPU-detection incident, a CPU/RAM question, and the owner's standing
-  decisions about how much you may do on your own. Trust it as a starting
-  point, verify it as a source.
+  submission of Mimarchy (HANCORE-linux/omarchy-plugin-marketplace#2935),
+  an unresolved GPU-detection incident, a CPU/RAM question, and the owner's
+  standing decisions about how much you may do on your own. Trust it as a
+  starting point, verify it as a source.
 - **Tests** (count as of version 0.6.0), from a scratch venv outside the
   checkout (a plugin folder may contain no symlinks, so a venv inside it
   would fail `omarchy plugin validate`):
@@ -19,12 +26,14 @@
   copied out of the checkout by root) plus one `modules-load.d` line for
   the in-tree `nct6775` fan driver. Daemons are panel-supervised with pidfile singletons, not
   systemd units. The marketplace review is bound to exact commits on
-  `main`; do not move `main` mid-review without a reason.
+  `main` of villenull/Mimarchy (the `origin` remote here); do not move that
+  `main` mid-review without a reason. This repository's own `main` is the
+  `micachy` remote and is not under review.
 - **Install is plugin-add only.** `omarchy plugin add
-  https://github.com/villenull/mimarchy --enable` is the whole install;
+  https://github.com/villenull/micachy --enable` is the whole install;
   there is no installer script, no venv, no systemd unit. `bin/` holds real
-  stdlib-only launchers (`mimarchy-ctl`, `mimarchy-lightd`,
-  `mimarchy-displayd`, `mimarchy-setup`) that the panel spawns via
+  stdlib-only launchers (`micachy-ctl`, `micachy-lightd`,
+  `micachy-displayd`, `micachy-setup`) that the panel spawns via
   `/usr/bin/python3`.
 - **Conventions.** Comments explain *why*, in prose; every agreement that
   spans files gets a test (`tests/test_install_inputs.py`,

@@ -4,9 +4,9 @@ import Quickshell.Io
 import qs.Commons
 import qs.Ui
 
-// Mimarchy's bar widget: one icon, one panel.
+// Micachy's bar widget: one icon, one panel.
 //
-// Everything with a decision in it lives in `mimarchy-ctl`, not here. Plugins
+// Everything with a decision in it lives in `micachy-ctl`, not here. Plugins
 // run unsandboxed inside the user's long-lived shell process, so a crash in
 // this file is a crash in their desktop — and QML cannot be unit tested from
 // this repo at all. What is left here is deliberately declarative: read a JSON
@@ -15,10 +15,10 @@ import qs.Ui
 // State arrives by two routes, for two different reasons:
 //
 //   * The lighting state file is *watched*. Effect, speed and link changes made
-//     by any other `mimarchy-ctl` invocation — a Hyprland keybinding, a shell
+//     by any other `micachy-ctl` invocation — a Hyprland keybinding, a shell
 //     script — show up here within a frame, with no polling and no process.
 //   * Whether the lightd child this panel supervises is alive needs
-//     `mimarchy-ctl status --json`, so that part is polled: quickly while the
+//     `micachy-ctl status --json`, so that part is polled: quickly while the
 //     panel is open, slowly while it is closed. A closed icon only needs to
 //     notice the daemon dying outright — a crash never touches the state file,
 //     so the watch above cannot see it, and this poll is the only thing that
@@ -31,12 +31,12 @@ import qs.Ui
 // purpose — there is no reading here worth surfacing outside the panel.
 Panel {
   id: root
-  moduleName: "io.github.villenull.mimarchy"
-  ipcTarget: "mimarchy"
+  moduleName: "io.github.villenull.micachy"
+  ipcTarget: "micachy"
 
   // ---- state -------------------------------------------------------------
 
-  // The parsed `mimarchy-ctl status --json` document, or null before the first
+  // The parsed `micachy-ctl status --json` document, or null before the first
   // successful read. Null is meaningfully different from "everything is off":
   // it is what "the backend has not produced a reading yet" looks like, and
   // the panel says so rather than drawing a confident row of zeroes.
@@ -59,8 +59,8 @@ Panel {
   // Named interpreter rather than the scripts' shebang, so nothing is looked
   // up on $PATH. -I ignores PYTHONPATH and the user site directory, -S skips
   // site imports; the backend is stdlib-only.
-  readonly property var ctlCommand: ["/usr/bin/python3", "-I", "-S", backendDir + "/mimarchy-ctl"]
-  readonly property var lightCommand: ["/usr/bin/python3", "-I", "-S", backendDir + "/mimarchy-lightd"]
+  readonly property var ctlCommand: ["/usr/bin/python3", "-I", "-S", backendDir + "/micachy-ctl"]
+  readonly property var lightCommand: ["/usr/bin/python3", "-I", "-S", backendDir + "/micachy-lightd"]
 
   // One-line user action the light daemon left behind on a fatal exit (the
   // udev sudo hint, e.g.), null when the daemon runs or never started.
@@ -93,14 +93,14 @@ Panel {
 
   // The old TUI's `PALETTE`, as hex literals rather than as an import, because
   // that file was deleted along with the TUI and these are the values a user's
-  // muscle memory is attached to. `arg` is what `mimarchy-ctl colour` is handed:
+  // muscle memory is attached to. `arg` is what `micachy-ctl colour` is handed:
   // a role name for the theme chip, a hex string for the fixed swatches.
   //
   // The theme chip leads, and is a swatch rather than a mode, because
   // `colour_role` already *is* a colour choice underneath — "follow the
   // desktop" belongs next to the colours it competes with, not in a switch
   // somewhere else. `accent` is a member of `theme.LED_ROLES`; the other seven
-  // roles stay reachable from `mimarchy-ctl colour <role>`.
+  // roles stay reachable from `micachy-ctl colour <role>`.
   readonly property var swatches: [
     { arg: "accent",  colour: "" },
     { arg: "#ffffff", colour: "#ffffff" },
@@ -178,7 +178,7 @@ Panel {
   }
 
   // Which swatch the zone is currently on, or -1 for a colour set from
-  // somewhere else — `mimarchy-ctl colour '#123456'` is a legal thing to have
+  // somewhere else — `micachy-ctl colour '#123456'` is a legal thing to have
   // run, and marking nothing is more honest than marking the nearest.
   function selectedSwatch(target) {
     if (!target) return -1
@@ -208,9 +208,9 @@ Panel {
   readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME")
     || (Quickshell.env("HOME") + "/.config")
   readonly property string statePath: (runtimeDir !== "" ? runtimeDir : configHome)
-    + "/mimarchy-lighting.json"
+    + "/micachy-lighting.json"
 
-  // Watched rather than polled. Any `mimarchy-ctl` invocation — this panel's
+  // Watched rather than polled. Any `micachy-ctl` invocation — this panel's
   // own, or an independent one from a keybinding or script — writes this file
   // atomically, so the bar follows along without either side knowing about the
   // other. The contents are not parsed here — the file changing is only used as
@@ -243,7 +243,7 @@ Panel {
           // Malformed output is not a failed backend, and is not worth
           // clearing a good previous reading over: keep what is on screen and
           // try again on the next tick.
-          console.warn("mimarchy", "could not parse status", e)
+          console.warn("micachy", "could not parse status", e)
         }
       }
     }
@@ -285,7 +285,7 @@ Panel {
   }
 
   // Actions are serialised rather than run concurrently, because two
-  // `mimarchy-ctl` writes racing each other is exactly the interleaving the
+  // `micachy-ctl` writes racing each other is exactly the interleaving the
   // atomic write is there to prevent — and a second one would read the state
   // before the first had written it.
   property var pendingAction: null
@@ -612,7 +612,7 @@ Panel {
         Text {
           width: parent.width
           visible: root.backendMissing
-          text: "Mimarchy backend failed to run.\nCheck the shell log and reopen the panel."
+          text: "Micachy backend failed to run.\nCheck the shell log and reopen the panel."
           wrapMode: Text.WordWrap
           color: Color.popups.text
           font.family: Style.font.family
@@ -812,7 +812,7 @@ Panel {
       }
 
       // The effect's real name, not an abbreviation of it: this is the word
-      // `mimarchy-ctl effect <name>` takes, and a cell labelled "breathe" for
+      // `micachy-ctl effect <name>` takes, and a cell labelled "breathe" for
       // an effect called `breathing` teaches the wrong one.
       //
       // Fitted rather than elided, because a seventh of the panel is not a

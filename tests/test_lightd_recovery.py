@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from mimarchy.lightd import WriteFailureWatch  # noqa: E402
+from micachy.lightd import WriteFailureWatch  # noqa: E402
 
 WINDOW = 5.0
 

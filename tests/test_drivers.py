@@ -15,8 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
-from mimarchy import aura, hidraw, nitro  # noqa: E402
-from mimarchy import rgb as rgb_mod  # noqa: E402
+from micachy import aura, hidraw, nitro  # noqa: E402
+from micachy import rgb as rgb_mod  # noqa: E402
 
 
 def _write(path: Path, text: str) -> None:
@@ -264,17 +264,17 @@ class _FakeNitro:
 
 def _nitro_only_controller(monkeypatch) -> tuple:
     """An RGBController with only the GPU zone, behind a fake Nitro card."""
-    from mimarchy.config import Config, RGBZoneConfig
+    from micachy.config import Config, RGBZoneConfig
 
     fake = _FakeNitro()
     monkeypatch.setattr(nitro.NitroCard, "open",
                         classmethod(lambda cls, buses=None: fake))
-    monkeypatch.setattr("mimarchy.rgb._aura.AuraBoard.open",
+    monkeypatch.setattr("micachy.rgb._aura.AuraBoard.open",
                         classmethod(lambda cls, *a, **k: (_ for _ in ()).throw(
                             hidraw.HidError("no board"))))
     config = Config(zones={"gpu": RGBZoneConfig(device="Sapphire Nitro Glow",
                                                 zone=0)})
-    import mimarchy.rgb as rgb_here
+    import micachy.rgb as rgb_here
     controller = rgb_here.RGBController(config)
     assert isinstance(controller._nitro, _FakeNitro)
     return controller, fake

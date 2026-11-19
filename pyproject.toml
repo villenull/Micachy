@@ -1,7 +1,7 @@
 [project]
-name = "mimarchy"
+name = "micachy"
 # Kept in step with manifest.json's version, and asserted in tests/test_manifest.py.
-# The bar widget shells out to this package's `mimarchy-ctl`, so the two ship as
+# The bar widget shells out to this package's `micachy-ctl`, so the two ship as
 # one thing — a plugin newer than the backend it calls is the support case
 # nobody can debug from a screenshot.
 version = "0.6.1"
@@ -22,13 +22,13 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/villenull/mimarchy"
+Homepage = "https://github.com/villenull/micachy"
 
 [project.scripts]
-mimarchy-ctl = "mimarchy.ctl:main"
-mimarchy-setup = "mimarchy.setup:main"
-mimarchy-displayd = "mimarchy.displayd:main"
-mimarchy-lightd = "mimarchy.lightd:main"
+micachy-ctl = "micachy.ctl:main"
+micachy-setup = "micachy.setup:main"
+micachy-displayd = "micachy.displayd:main"
+micachy-lightd = "micachy.lightd:main"
 
 [build-system]
 requires = ["setuptools>=68"]

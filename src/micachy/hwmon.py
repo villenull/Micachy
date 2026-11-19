@@ -41,7 +41,7 @@ def snapshot() -> dict:
 
     Each reader below shells out on its own when called bare, which is the
     right default — a stale temperature is worse than a cheap one, and there is
-    no hidden cache to reason about. But `mimarchy-ctl status` answers all three
+    no hidden cache to reason about. But `micachy-ctl status` answers all three
     at once, so calling them bare spawned `sensors` three times per invocation,
     and the bar widget polls `status` every two seconds while its panel is open.
     Passing one snapshot through makes that a single spawn.
@@ -60,7 +60,7 @@ def _read_sensors_json() -> dict:
     here: temperatures are a nice-to-have next to the lighting, and a machine
     without the package installed is a supported configuration rather than a
     broken one. Every caller already treats a missing reading as `None`, so an
-    empty dict flows through to "—" in the panel and `null` in `mimarchy-ctl
+    empty dict flows through to "—" in the panel and `null` in `micachy-ctl
     status --json` with nothing further to do.
 
     Raising instead is not a theoretical difference. This is read on every

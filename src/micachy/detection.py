@@ -1,7 +1,7 @@
-"""What the lighting daemon found when it last started, for `mimarchy-ctl`.
+"""What the lighting daemon found when it last started, for `micachy-ctl`.
 
 The daemon is the only process that ever opens the lighting controllers, and
-until this file existed it kept the answer to itself. `mimarchy-ctl status`
+until this file existed it kept the answer to itself. `micachy-ctl status`
 read the *desired* state file and asked systemd whether the unit was active,
 so a configured zone whose controller had stopped answering — a graphics card
 whose LED controller dropped off its I2C bus, in the case that prompted this —
@@ -28,7 +28,7 @@ _RUNTIME_DIR = Path(
     or os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")
 )
 
-DETECTION_PATH = _RUNTIME_DIR / "mimarchy-detection.json"
+DETECTION_PATH = _RUNTIME_DIR / "micachy-detection.json"
 
 
 @dataclass

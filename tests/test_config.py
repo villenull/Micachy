@@ -6,7 +6,7 @@ and every consumer loads it: the daemon, the TUI, the CLI, and the bar widget on
 every poll. A parse that raises therefore takes all four down at once, from one
 typo, which is why most of what is pinned here is degradation.
 
-Nothing touches `~/.config/mimarchy/config.toml`: every test passes an explicit
+Nothing touches `~/.config/micachy/config.toml`: every test passes an explicit
 `tmp_path`.
 """
 
@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from mimarchy.config import DEFAULT_CONFIG, load_config  # noqa: E402
+from micachy.config import DEFAULT_CONFIG, load_config  # noqa: E402
 
 
 def write(tmp_path: Path, body: str) -> Path:

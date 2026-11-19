@@ -1,4 +1,4 @@
-"""Tests for `mimarchy.service`: pidfile claim, liveness, stop, and notes.
+"""Tests for `micachy.service`: pidfile claim, liveness, stop, and notes.
 
 Pidfile ownership is genuinely racy logic — stale entries, recycled pids,
 and two spawners racing — so it earns permanent tests. Everything here runs
@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy import service  # noqa: E402
+from micachy import service  # noqa: E402
 
 
 @pytest.fixture
@@ -73,7 +73,7 @@ def test_garbage_pidfile_is_reclaimed(proc):
 
 
 def test_live_owner_refuses_the_claim_and_keeps_its_pid(proc):
-    _plant(proc, 4242, "/usr/bin/python3", "-I", "-S", "bin/mimarchy-lightd")
+    _plant(proc, 4242, "/usr/bin/python3", "-I", "-S", "bin/micachy-lightd")
     service._pidfile("lightd").write_text("4242\n")
     assert service.daemon_alive("lightd", _proc_root=proc) is True
     assert service.claim_pidfile("lightd", _proc_root=proc) is False
@@ -83,7 +83,7 @@ def test_live_owner_refuses_the_claim_and_keeps_its_pid(proc):
 def test_claim_then_alive_with_own_cmdline(proc, monkeypatch):
     """End to end on the fake proc: claim, then the owner looks alive."""
     assert service.claim_pidfile("lightd", _proc_root=proc) is True
-    _plant(proc, os.getpid(), "/usr/bin/python3", "bin/mimarchy-lightd")
+    _plant(proc, os.getpid(), "/usr/bin/python3", "bin/micachy-lightd")
     assert service.daemon_alive("lightd", _proc_root=proc) is True
 
 
@@ -97,7 +97,7 @@ def test_stop_terminates_a_live_owner(proc):
     """A real process whose argv carries the marker, stopped via real /proc."""
     child = subprocess.Popen(
         [sys.executable, "-c",
-         "import time; marker = 'mimarchy-lightd'; time.sleep(60)"]
+         "import time; marker = 'micachy-lightd'; time.sleep(60)"]
     )
     try:
         service._pidfile("lightd").write_text(f"{child.pid}\n")
@@ -132,7 +132,7 @@ def test_note_round_trip(proc):
 
 def test_daemon_script_resolves_into_this_checkout():
     path = service.daemon_script("displayd")
-    assert path.name == "mimarchy-displayd"
+    assert path.name == "micachy-displayd"
     assert path.parent.name == "bin"
     assert path.is_file()
 
@@ -150,7 +150,7 @@ def test_ensure_theme_hook_links_into_omarchy(tmp_path, monkeypatch):
     (cfg / "omarchy").mkdir(parents=True)
     monkeypatch.setenv("XDG_CONFIG_HOME", str(cfg))
     service.ensure_theme_hook()
-    dest = cfg / "omarchy" / "hooks" / "theme-set.d" / "mimarchy"
+    dest = cfg / "omarchy" / "hooks" / "theme-set.d" / "micachy"
     assert dest.is_symlink()
     assert dest.readlink().is_file()
     # Second run is a no-op, not a second link or an error.

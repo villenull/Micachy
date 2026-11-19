@@ -83,7 +83,7 @@ def nearest_speed(speed: float) -> float:
 
     State written under the old six-stop ladder holds values above the current
     maximum, and an unsnapped one lights no stop at all. Public because
-    `mimarchy-ctl` steps the ladder from here on every speed command, so a
+    `micachy-ctl` steps the ladder from here on every speed command, so a
     speed the bar reports and a speed it later stores can never disagree about
     which stop they mean.
     """

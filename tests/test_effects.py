@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest  # noqa: E402
 
-from mimarchy.effects import (COLOUR_EFFECTS, EFFECTS, SPATIAL_EFFECTS,  # noqa: E402
+from micachy.effects import (COLOUR_EFFECTS, EFFECTS, SPATIAL_EFFECTS,  # noqa: E402
                                 SPEED_LEVELS, _UNHINGED_FLOOR, _UNHINGED_POOL,
                                 _rand, render, speed_gain)
 
@@ -178,7 +178,7 @@ def test_the_gain_behind_a_label_depends_on_the_effect() -> None:
     spatial pair start where the general ladder's middle is, and rainbow's top is
     three times its own previous top.
     """
-    from mimarchy.effects import cycle_seconds, speed_gain
+    from micachy.effects import cycle_seconds, speed_gain
     # Rainbow's slowest is the general ladder's middle stop.
     assert cycle_seconds(0.2, "rainbow") == pytest.approx(
         cycle_seconds(0.6, "spectrum"), rel=0.01)

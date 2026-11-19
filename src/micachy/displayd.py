@@ -11,17 +11,17 @@ import signal
 import sys
 from typing import NoReturn
 
-from mimarchy import hidraw
-from mimarchy.config import load_config
-from mimarchy.display import (CPUDisplay, DEFAULT_INTERVAL, DisplayFrame,
+from micachy import hidraw
+from micachy.config import load_config
+from micachy.display import (CPUDisplay, DEFAULT_INTERVAL, DisplayFrame,
                               ProtocolUnknownError, stream)
-from mimarchy.hwmon import (
+from micachy.hwmon import (
     read_cpu_fan_rpm,
     read_cpu_load,
     read_cpu_temp,
     read_gpu_temp,
 )
-from mimarchy.service import (claim_pidfile, clear_note, owner_pid, write_note)
+from micachy.service import (claim_pidfile, clear_note, owner_pid, write_note)
 
 
 def build_frame() -> DisplayFrame:
@@ -30,7 +30,7 @@ def build_frame() -> DisplayFrame:
     # 64-byte frame has no "unknown"
     # encoding, so a missing reading (None, e.g. driver not loaded) still
     # sends 0 on the wire and the panel truncates to the nearest 100, which
-    # renders as 0. `mimarchy-ctl status` forwards the None, not this 0,
+    # renders as 0. `micachy-ctl status` forwards the None, not this 0,
     # which is where "—" lives. The GPU's own fan1 is never the CPU fan
     # (see hwmon.read_cpu_fan_rpm).
     return DisplayFrame(
@@ -54,7 +54,7 @@ def main() -> None:
         # supervision. Exit 0 with the owner named so this reads as a clean
         # no-op. --once never claims — it is a probe that must leave a
         # running daemon alone.
-        print(f"mimarchy-displayd already running (pid {owner_pid('displayd')})",
+        print(f"micachy-displayd already running (pid {owner_pid('displayd')})",
               file=sys.stderr)
         return
     if not args.once:
@@ -80,7 +80,7 @@ def main() -> None:
     except PermissionError:
         _fail(
             "Permission denied opening the display's hidraw node. Install "
-            "udev/99-mimarchy.rules, reload udev, and re-plug the device "
+            "udev/99-micachy.rules, reload udev, and re-plug the device "
             "(see README)."
         )
 
@@ -111,7 +111,7 @@ def main() -> None:
     except PermissionError:
         _fail(
             "Permission denied opening the display's hidraw node. Install "
-            "udev/99-mimarchy.rules, reload udev, and re-plug the device "
+            "udev/99-micachy.rules, reload udev, and re-plug the device "
             "(see README)."
         )
 

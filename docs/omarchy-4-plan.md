@@ -10,11 +10,11 @@
 
 Omarchy 4.0 "Quattro" (released 2026-08-14) replaced the entire Waybar-era
 desktop shell with a single Quickshell process, moved the theme state, and
-redesigned the theme palette. Two of Mimarchy's three Omarchy integration
+redesigned the theme palette. Two of Micachy's three Omarchy integration
 surfaces break outright; the third needs a loader update. In exchange, v4
 ships something 3.x never had: a first-party **plugin system** for the bar,
 with a community marketplace behind it — which is a far better home for
-Mimarchy than a merged-by-hand Waybar snippet ever was.
+Micachy than a merged-by-hand Waybar snippet ever was.
 
 Decisions already made:
 
@@ -32,7 +32,7 @@ Facts below were verified against the `basecamp/omarchy` source at v4.0.0+
 05/15/21/32/43) and the marketplace registry
 (`HANCORE-linux/omarchy-plugin-marketplace`), not just release coverage.
 
-## 1. What Omarchy 4 changed, as it affects Mimarchy
+## 1. What Omarchy 4 changed, as it affects Micachy
 
 - **Waybar is gone, not deprecated.** One Quickshell process
   (`omarchy-shell`) now provides the bar, launcher, notifications, OSDs,
@@ -56,14 +56,14 @@ Facts below were verified against the `basecamp/omarchy` source at v4.0.0+
   hook (`~/.config/omarchy/hooks/theme-set.d/`), and any template dropped in
   `~/.config/omarchy/themed/<file>.tpl` is re-rendered with the new palette
   on every switch. Both are sanctioned ways for third-party tools to react
-  to a theme change — Mimarchy no longer has to be "themed on next open".
+  to a theme change — Micachy no longer has to be "themed on next open".
 - **TUI launch conventions shifted.** `omarchy-launch-or-focus-tui` and
   `omarchy-launch-tui` survive, but they now go through `xdg-terminal-exec`
   and the default terminal is **Foot**, not Alacritty. Hyprland config is now
   **Lua**; the stock rules float only a fixed list of `org.omarchy.*` classes
-  plus the `TUI.float` class, so an arbitrary `org.omarchy.mimarchy-tui`
+  plus the `TUI.float` class, so an arbitrary `org.omarchy.micachy-tui`
   window **tiles** by default on v4. The `bluetui`/`impala` floating-TUI
-  pattern Mimarchy imitates was removed from stock (those jobs moved into
+  pattern Micachy imitates was removed from stock (those jobs moved into
   shell panels) — but user-registered TUIs (*Install > TUI*) are a feature,
   so the pattern itself is still native to the culture.
 - **The "store".** There is no official 37signals store; the thing that
@@ -74,7 +74,7 @@ Facts below were verified against the `basecamp/omarchy` source at v4.0.0+
   automated security-baseline scan and capability flags. Distribution is
   always `omarchy plugin add <git-url>` — the marketplace hosts no code.
 
-## 2. Where Mimarchy touches Omarchy today
+## 2. Where Micachy touches Omarchy today
 
 Everything else — the effect renderer, OpenRGB client, HID display protocol,
 udev rule, systemd user units — is distro-version-agnostic and untouched.
@@ -84,8 +84,8 @@ working exactly as before.)
 | Surface | Where | On Omarchy 4 |
 |---|---|---|
 | Theme palette | `theme.py` reads `~/.config/omarchy/current/theme/colors.toml`, keys `color0`–`15` | **Broken twice**: path moved, and the key vocabulary changed. Fails soft to the fallback palette — themed UI silently lost |
-| Bar module | `waybar/mimarchy-module.jsonc` + CSS | **Gone** — no Waybar to merge into |
-| Launcher | `omarchy-launch-mimarchy` → `omarchy-launch-or-focus-tui mimarchy-tui` | Script family survives, but the window now **tiles** (class isn't in v4's float list) and opens in Foot |
+| Bar module | `waybar/micachy-module.jsonc` + CSS | **Gone** — no Waybar to merge into |
+| Launcher | `omarchy-launch-micachy` → `omarchy-launch-or-focus-tui micachy-tui` | Script family survives, but the window now **tiles** (class isn't in v4's float list) and opens in Foot |
 | Float rule | Hyprland `windowrule` line in `install.sh` step 5c | Wrong syntax — Hyprland config is Lua now (`o.window{…}`) |
 | Install docs | `install.sh` step 5b: "merge into waybar config, `omarchy restart waybar`" | Wrong on v4 regardless |
 
@@ -118,7 +118,7 @@ What is left needs hardware, and is genuinely the largest remaining unknown:
    orientations, wheel and right-click, backend-missing message.
 1. A user-installed theme's `colors.toml` (the 22 stock ones were parsed in
    Phase 1), including a light theme with `mode`.
-2. `omarchy-launch-mimarchy` — that it opens in Foot and floats.
+2. `omarchy-launch-micachy` — that it opens in Foot and floats.
 3. The theme hook end to end: switch theme, watch the LEDs follow.
 4. The lighting path itself, which no amount of source reading covers.
 
@@ -132,7 +132,7 @@ Shipped, with three findings worth carrying forward:
 - **A bar icon is plugin-only.** Omarchy 4 draws bar widgets exclusively from
   shell plugins — there is no `shell.json` entry or drop-in that adds a
   standalone item. The Phase 1 stopgap is therefore a *menu* entry
-  (`omarchy/mimarchy-menu.jsonc`), not an icon; the icon genuinely arrives
+  (`omarchy/micachy-menu.jsonc`), not an icon; the icon genuinely arrives
   with Phase 2 and cannot be pulled forward.
 - **`muted` loses the legibility guard on 19 of 22 stock themes.** Measured
   across every shipped v4 theme, the `muted` key clears `MIN_CONTRAST` on
@@ -161,15 +161,15 @@ Shipped, with three findings worth carrying forward:
   `selection` / `bright_foreground` pairing; the v3 slot mapping is untouched.
   Verified against all 22 stock v4 themes: every role legible in every one,
   light and dark.
-- **Float again** — `omarchy/mimarchy.lua` carries
-  `o.window("org.omarchy.mimarchy-tui", { tag = "+floating-window" })`.
+- **Float again** — `omarchy/micachy.lua` carries
+  `o.window("org.omarchy.micachy-tui", { tag = "+floating-window" })`.
   Tagging rather than `float = true` keeps the standard centring and 875x600.
   The app-id is unchanged and still picks up v4's `terminal` tag for free
   (Omarchy matches `org\.omarchy\..*` for that one).
 - **`install.sh` v3/v4 detection** — branches on which theme path exists,
   since 4.0 moved it and left no symlink, so the path *is* the version test.
   Prints matching instructions for v4, 3.x, or neither.
-- **Launcher** — `bin/omarchy-launch-mimarchy` (moved out of `waybar/`) still
+- **Launcher** — `bin/omarchy-launch-micachy` (moved out of `waybar/`) still
   prefers `omarchy-launch-or-focus-tui`, and now falls back to
   `xdg-terminal-exec` and then `$TERMINAL`, so it works off Omarchy too.
 - **README** — install section split into "Omarchy 4" and "Omarchy 3.x
@@ -178,8 +178,8 @@ Shipped, with three findings worth carrying forward:
 
 ## 5. Phase 2 — the native shell plugin (0.3.0) — **done**
 
-The headline. Mimarchy is now an Omarchy shell plugin: `manifest.json` at the
-repo root, id **`io.github.villenull.mimarchy`** (the marketplace's recommended
+The headline. Micachy is now an Omarchy shell plugin: `manifest.json` at the
+repo root, id **`io.github.villenull.micachy`** (the marketplace's recommended
 namespace; `omarchy.*` is reserved), kind **`bar-widget`**.
 
 Shipped, with these decisions and findings:
@@ -195,7 +195,7 @@ Shipped, with these decisions and findings:
   `omarchy plugin update` fast-forwards it. Running `install.sh` from inside
   that directory leaves exactly one copy on disk instead of two; `install.sh`
   detects which case it is in and prints accordingly.
-- **`mimarchy-ctl` came out better than expected.** It was specified as
+- **`micachy-ctl` came out better than expected.** It was specified as
   plumbing for the widget, but it is a good command in its own right —
   `status`, `speed`, `effect`, `display`, `link`, with `--json` for the widget
   and human output otherwise. It is now documented in the README as a
@@ -209,7 +209,7 @@ Shipped, with these decisions and findings:
   `hwmon._read_sensors_json` used `check=True` with no handler, so *any* machine
   without `lm_sensors` raised `FileNotFoundError` — on every TUI repaint, and
   now on every widget poll. Every consumer was already written to expect
-  `None`, so the fix was to fail soft. Caught by running `mimarchy-ctl status`
+  `None`, so the fix was to fail soft. Caught by running `micachy-ctl status`
   for real; the unit tests all stub the sensors, which is exactly why they
   missed it. `tests/test_hwmon.py` now exercises the real function.
 - **The venv had to move out of the checkout.** `omarchy-plugin-validate`
@@ -217,9 +217,9 @@ Shipped, with these decisions and findings:
   virtualenv has four (even `--copies` leaves `lib64`). Since `omarchy plugin
   update` re-validates and rolls back, a `.venv` in the checkout would have
   made the plugin silently un-updatable — so `install.sh` now builds it in
-  `~/.local/share/mimarchy/`. The symlink test mirrors the validator exactly,
+  `~/.local/share/micachy/`. The symlink test mirrors the validator exactly,
   pruning only `.git`, so this cannot be reintroduced without a red test.
-- **`mimarchy-ctl` was never on PATH.** `install.sh` symlinked `mimarchy-tui`
+- **`micachy-ctl` was never on PATH.** `install.sh` symlinked `micachy-tui`
   and the launcher but not the CLI the widget invokes by bare name — which
   would have left the panel stuck on "backend not installed" on every stock
   install, with everything else appearing to work. It is symlinked now, and
@@ -237,12 +237,12 @@ Shipped, with these decisions and findings:
 ### Widget behaviour
 
 - **At rest**: the 󰌵 glyph, tinted with the theme accent while lighting is
-  animating, dimmed when `mimarchy-light.service` is stopped (LEDs frozen).
+  animating, dimmed when `micachy-light.service` is stopped (LEDs frozen).
 - **Click**: opens the **panel** — a small floating Quickshell popout in the
   bar's own style showing live state: effect + speed per target (or the
   linked pair), CPU/GPU temperature, fan RPM, cooler display on/off; with
   the two controls worth having outside the TUI: speed +/- and display
-  toggle. A "open Mimarchy" row launches the floating TUI for everything
+  toggle. A "open Micachy" row launches the floating TUI for everything
   else. (Scroll-on-icon for speed, right-click for display toggle as
   shortcuts.)
 - **Settings schema** in the manifest (v4 surfaces these in the bar UI):
@@ -256,22 +256,22 @@ depth) — and it is exactly the split the competition (§7) doesn't have.
 ### How it talks to the daemons (no new IPC)
 
 The architecture already has the right seam: the TUI never drives hardware,
-it writes `$XDG_RUNTIME_DIR/mimarchy-lighting.json` atomically and
-`mimarchy-lightd` polls it. The widget plugs into the same seam:
+it writes `$XDG_RUNTIME_DIR/micachy-lighting.json` atomically and
+`micachy-lightd` polls it. The widget plugs into the same seam:
 
-- **Read**: Quickshell `FileView` watching `mimarchy-lighting.json` for
+- **Read**: Quickshell `FileView` watching `micachy-lighting.json` for
   effect/speed/linked state; systemd unit state via a cheap
   `systemctl --user is-active` poll only while the panel is open.
-- **Write**: never from QML. New **`mimarchy-ctl`** entry point
-  (`mimarchy-ctl speed +`, `display toggle`, `effect <name>`,
+- **Write**: never from QML. New **`micachy-ctl`** entry point
+  (`micachy-ctl speed +`, `display toggle`, `effect <name>`,
   `status --json`) reusing `lightstate.py`'s atomic save and the existing
   systemctl wrappers. The widget shells out to it. One writer
   implementation, no atomicity logic reimplemented in QML — and the CLI is
   independently useful (Hyprland keybindings, scripting, the menu).
-- **Sensors**: `mimarchy-ctl status --json` carries temps/RPM (reuses
+- **Sensors**: `micachy-ctl status --json` carries temps/RPM (reuses
   `hwmon.py`), polled ~2 s while the panel is open.
 
-All logic lives in `mimarchy-ctl`, unit-tested next to the existing tests;
+All logic lives in `micachy-ctl`, unit-tested next to the existing tests;
 the QML stays declarative enough not to need a rig. Plugins run unsandboxed
 inside the shell process, so QML-side minimalism is also a stability
 courtesy: a broken widget is a broken shell.
@@ -281,13 +281,13 @@ courtesy: a broken widget is a broken shell.
 - The widget/panel consume the shell's own theme tokens (the per-theme
   `shell.toml` machinery), so a theme switch restyles them live with the
   rest of the bar. No hardcoded colour, same rule as the TUI.
-- A `~/.config/omarchy/extensions/omarchy-menu.jsonc` entry ("Mimarchy" under
-  the appropriate submenu) comes along nearly for free via `mimarchy-ctl`.
+- A `~/.config/omarchy/extensions/omarchy-menu.jsonc` entry ("Micachy" under
+  the appropriate submenu) comes along nearly for free via `micachy-ctl`.
 
 ### Repo layout and install split
 
-One repo. `omarchy plugin add https://github.com/villenull/mimarchy` clones
-everything into `~/.config/omarchy/plugins/io.github.villenull.mimarchy/`;
+One repo. `omarchy plugin add https://github.com/villenull/micachy` clones
+everything into `~/.config/omarchy/plugins/io.github.villenull.micachy/`;
 the manifest points at `quickshell/*.qml`. Plugin install deliberately runs
 no hooks and no sudo, so the Python backend (venv, services, udev, OpenRGB)
 stays on `install.sh` — the widget detects a missing backend and shows a
@@ -302,7 +302,7 @@ Shipped. What it turned into, and the two judgement calls behind it:
 - **`lightd` was not touched at all**, which was the goal. `TargetState` gained
   a `colour_role`, and the *resolved* RGB keeps being written to `colour`
   alongside it — so the daemon reads exactly what it always read and the
-  rendering path took on no new failure mode. `mimarchy-ctl reload-theme`
+  rendering path took on no new failure mode. `micachy-ctl reload-theme`
   re-resolves roles and saves; the daemon's existing mtime poll does the rest.
   A theme switch reaches the LEDs in a frame, and nothing in the daemon knows
   a theme exists.
@@ -320,7 +320,7 @@ Shipped. What it turned into, and the two judgement calls behind it:
 - **One theme entry in the TUI cycle, not eight.** The cycle is walked by
   repeated presses of one key, so each entry taxes everyone reaching the ones
   after it. `accent` is the entry that means "match my desktop"; the other
-  seven roles are reachable from `mimarchy-ctl colour <role>`.
+  seven roles are reachable from `micachy-ctl colour <role>`.
 - **Found while testing: `accent` exists in *both* palette dialects.** v3 had it
   alongside the ANSI slots, so branching on dialect sent v3 themes to `color4`
   and silently ignored their real accent. LED roles now try the role's own name
@@ -365,7 +365,7 @@ palette. v4's hooks make the obvious feature cheap, and the competition
   draw from the theme's named-colour ramp instead of the hue wheel.
 - **Live re-theme**: `install.sh` drops a one-line script into
   `~/.config/omarchy/hooks/theme-set.d/` that calls
-  `mimarchy-ctl reload-theme`; `lightd` re-resolves theme-sourced colours on
+  `micachy-ctl reload-theme`; `lightd` re-resolves theme-sourced colours on
   its next frame. Switch themes, the LEDs follow within a frame — no TUI
   reopen. (The TUI keeps its read-at-startup behaviour; it's an overlay.)
 - The persisted state stores the *role* ("theme accent"), not the resolved
@@ -389,7 +389,7 @@ palette. v4's hooks make the obvious feature cheap, and the competition
 
 Shipped, developed in parallel with Phase 3 and merged. The substance:
 
-- **`mimarchy-setup`** lists every detected device and zone, asks which to
+- **`micachy-setup`** lists every detected device and zone, asks which to
   drive and how long each strip is, and writes `config.toml` — keeping a
   timestamped backup and carrying over the display ids and link toggle it has
   no opinion about. `--list` is a non-interactive listing, and is what a bug
@@ -434,7 +434,7 @@ Two things worth carrying forward:
 
 What "works on my exact rig" assumes today, and what marketplace users need:
 
-1. **Zone discovery instead of hand-editing.** `mimarchy-setup`: connect to
+1. **Zone discovery instead of hand-editing.** `micachy-setup`: connect to
    OpenRGB, list devices/zones, pick zones and zone size interactively,
    write `config.toml`. The substring-match config already supports
    arbitrary hardware; this removes the read-the-comments-and-guess step.
@@ -476,7 +476,7 @@ week*:
 - **RGB Lighting** (`didlix.case-rgb`, listed Aug 15) — bar widget + popout:
   on/off, preset swatches, hue/brightness sliders, follow-theme-accent
   toggle, bundled CLI, OpenRGB as a user service, theme-hook wiring.
-  Architecturally the same surface Mimarchy occupies.
+  Architecturally the same surface Micachy occupies.
 - Adjacent: vendor keyboard-RGB plugins (ASUS, Ajazz, Acer), WLED strips,
   Elgato lights, and a dozen hwmon/fan bar widgets. First-party Omarchy RGB
   remains one accent colour for two laptop keyboards.
@@ -490,7 +490,7 @@ Don't out-broaden OmaRGB; be the thing it isn't:
 1. **The cooler display.** Live CPU telemetry on the cooler's own panel over
    a reverse-engineered HID protocol. Unique in the ecosystem; the demo GIF
    and the listing preview open with it.
-2. **Animated, phase-locked effects.** Everyone else sets colours; Mimarchy
+2. **Animated, phase-locked effects.** Everyone else sets colours; Micachy
    *renders* rainbow/spectrum/chase/breathing from one clock so CPU and GPU
    stay in phase — with measured receipts in `hardware-notes.md` for why
    controller-native effects can't do this (no speed control, free-running
@@ -509,13 +509,13 @@ Don't out-broaden OmaRGB; be the thing it isn't:
    marketing in this community.
 
 Positioning line to the effect of: *"OmaRGB paints your devices to match
-your theme. Mimarchy makes your cooler and GPU perform it — synced animated
+your theme. Micachy makes your cooler and GPU perform it — synced animated
 effects, live telemetry on the cooler's display, all driven from the bar."*
 
 ### Submission mechanics
 
 1. Pre-flight: `manifest.json` (`schemaVersion: 1`, permanent id
-   `io.github.villenull.mimarchy`), README with install *and removal*
+   `io.github.villenull.micachy`), README with install *and removal*
    instructions, MIT license (have), documented external deps (openrgb,
    python, optional nct6687d), root `preview.png`, `omarchy plugin
    validate` green in CI.
@@ -533,7 +533,7 @@ effects, live telemetry on the cooler's display, all driven from the bar."*
    `main` must always be shippable from listing day: tagged releases for
    humans, boring `main` for the installer.
 6. Note: a marketplace plugin competition ran Aug 19–24 with more likely to
-   follow; a polished listing positions Mimarchy for the next one.
+   follow; a polished listing positions Micachy for the next one.
 
 ### Launch sequence
 
@@ -551,7 +551,7 @@ effects, live telemetry on the cooler's display, all driven from the bar."*
 
 | Risk | Mitigation |
 |---|---|
-| Plugin API is a week old and moving (`schemaVersion: 1`) | Keep QML thin, logic in `mimarchy-ctl`; pin what the manifest allows; CI runs `omarchy plugin validate` |
+| Plugin API is a week old and moving (`schemaVersion: 1`) | Keep QML thin, logic in `micachy-ctl`; pin what the manifest allows; CI runs `omarchy plugin validate` |
 | Unsandboxed plugin: a widget bug degrades the user's whole shell | Minimal QML, no busy polling while closed, fail-hidden when backend absent |
 | OmaRGB velocity — it could add cooler-LCD or effects | Ship §6 fast (it's the cheap phase); the HID display and the measured-effects engine are the defensible parts; be gracious neighbours, not clones |
 | v3 palette dialect lingers in the wild | Dual-dialect loader with fixtures for both; fallback palette already fails soft |
@@ -565,12 +565,12 @@ effects, live telemetry on the cooler's display, all driven from the bar."*
 |---|---|---|
 | Phase 0 | v4 facts confirmed on hardware | `docs/omarchy-4-notes.md` |
 | Phase 1 | Theme loader (both dialects/paths), float rule, install detection, legacy split | **0.2.0** — "works on Omarchy 4" |
-| Phase 2 | `manifest.json`, bar widget + panel, `mimarchy-ctl`, menu entry | **0.3.0** — the visible upgrade |
+| Phase 2 | `manifest.json`, bar widget + panel, `micachy-ctl`, menu entry | **0.3.0** — the visible upgrade |
 | Phase 3 | Theme-following lighting + `theme-set` hook | **0.4.0** |
 | Phase 4 | Setup wizard, generalized detector restriction, N-zone audit | 0.4.x |
 | Phase 5 | Marketplace submission + launch | listing |
 
-Phases 3 and 4 can proceed in parallel once `mimarchy-ctl` exists; nothing
+Phases 3 and 4 can proceed in parallel once `micachy-ctl` exists; nothing
 is submitted until the wizard is in, because the first cohort of marketplace
 installs onto unknown hardware is the moment the generalization work either
 exists or turns into bug reports.

@@ -72,7 +72,7 @@ def test_id_is_outside_the_reserved_namespace(manifest):
 
 def test_id_follows_the_recommended_namespacing(manifest):
     """Ids are permanent and global — a collision cannot be fixed later."""
-    assert manifest["id"] == "io.github.villenull.mimarchy"
+    assert manifest["id"] == "io.github.villenull.micachy"
 
 
 def test_every_declared_kind_is_known(manifest):
