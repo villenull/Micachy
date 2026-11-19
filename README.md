@@ -1,23 +1,25 @@
 # Micachy
 
-**Omarchy-native LED control for CPU cooler fans and GPU.**
+**CachyOS-native LED control for CPU cooler fans and GPU.**
 
-A bar panel for the ARGB lighting on a CPU cooler's fans and a graphics card,
-plus the cooler's built-in temperature display. It is built for
-[Omarchy](https://omarchy.org/) specifically: it takes every colour from your
-active Omarchy theme at startup, and it lives in the bar the way Omarchy's own
-first-party panels do — click the icon, get the panel, nothing else to open.
+A panel applet for the ARGB lighting on a CPU cooler's fans and a graphics
+card, plus the cooler's built-in temperature display. It is built for
+[CachyOS](https://cachyos.org/) on KDE Plasma specifically: it lives in the
+panel the way Plasma's own tray popups do — click the bulb, get the popup,
+nothing else to open — and its daemons are ordinary systemd user services.
 Lighting reaches the motherboard headers over USB HID and the card over I2C on
 the card itself, driven directly with no daemon in between; the cooler's
 display is driven directly over HID with a protocol reverse-engineered for it.
 
-Runs on **Omarchy 4**.
+Runs on **CachyOS** with **KDE Plasma 6**. It began as
+[Mimarchy](https://github.com/villenull/Mimarchy), the same backend as an
+Omarchy plugin, and still installs that way ([On Omarchy](#on-omarchy)).
 
-![Micachy panel, linked](docs/panel-linked.png)
-![Micachy panel, unlinked](docs/panel-unlinked.png)
+![Micachy applet, linked](docs/applet-linked.png)
+![Micachy applet, unlinked](docs/applet-unlinked.png)
 
 Above: every zone linked, one shared set of controls. Below: unlinked, one
-block per zone. Both are the panel itself — there is nothing behind it.
+block per zone. Both are the applet itself — there is nothing behind it.
 
 ## What it does
 
@@ -25,9 +27,8 @@ block per zone. Both are the panel itself — there is nothing behind it.
   all rendered in software from one clock so both devices stay in phase.
 - **Linked or independent** — CPU and GPU move together by default; unlink to
   drive them separately.
-- **Theme-driven, including the LEDs** — no colour is hardcoded. The panel
-  takes its palette from your Omarchy theme, and the lighting itself can too:
-  pick `theme` as a colour and the strips follow every theme switch, live.
+- **A Plasma popup, not a window** — the same heading, pin and switches as the
+  Bluetooth and Networks popups, in your desktop's own colours and font.
 - **Cooler display** — streams live temperature and fan speed to the panel.
 
 ## Hardware
@@ -47,20 +48,19 @@ report. The cooler display is specific to that USB device (`5131:2007`).
 
 ## Install
 
+Clone it wherever you keep checkouts; everything below runs from there, and
+nothing is copied out of it except the applet.
+
 ```bash
-omarchy plugin add https://github.com/villenull/micachy --enable
+git clone https://github.com/villenull/micachy && cd micachy
 ```
 
-That is the entire install: the panel starts the backend itself, from the
-checkout Omarchy just cloned. `omarchy plugin update` keeps that checkout
-current, so there is a single copy on disk.
-
-The cooler display and the Aura controller sit on root-only hidraw nodes, the
-one thing the plugin cannot do for itself. Root writes exactly the two lines
-you can read here — not a file from this user-writable checkout
-(`udev/99-micachy.rules` keeps the same two lines for reference; a test
-asserts they never drift). The card needs no rule: its LED controller hangs
-off I2C adapters that already carry uaccess.
+**1. Device access.** The cooler display and the Aura controller sit on
+root-only hidraw nodes, the one thing this cannot do for itself. Root writes
+exactly the two lines you can read here — not a file from this user-writable
+checkout (`udev/99-micachy.rules` keeps the same two lines for reference; a
+test asserts they never drift). The card needs no rule: its LED controller
+hangs off I2C adapters that already carry uaccess.
 
 ```bash
 printf '%s\n' \
@@ -71,10 +71,56 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger --action=add --subsystem-match=hidraw
 ```
 
-Then unplug and replug the cooler, or reboot. The panel surfaces this itself
-when the daemon reports it cannot open a device.
+Then unplug and replug the cooler, or reboot.
 
-On hardware other than the reference set below, run the config wizard before
+**2. Zones.** On hardware other than the reference set above, run the config
+wizard before expecting light:
+
+```bash
+/usr/bin/python3 bin/micachy-setup
+```
+
+It lists every detected zone, asks which ones to drive and how long each
+strip is, and writes the config; the lighting daemon picks the new file up
+on its next poll. `/usr/bin/python3 bin/micachy-setup --list` prints what it
+sees without changing anything, which is also the right thing to paste into
+a bug report.
+
+**3. Daemons and applet.**
+
+```bash
+cachyos/install-units     # lighting and cooler display, as systemd user services
+cachyos/install-applet    # the panel applet
+```
+
+Then right-click the panel → Add or Manage Widgets → Micachy. Both scripts
+take `--uninstall`, and [`cachyos/README.md`](cachyos/README.md) has the
+details: logs, the lighting-only variant, and why the daemons take a few
+seconds to appear after login.
+
+**4. Fan speed** (optional) needs one kernel module loaded; see
+[Fan RPM](#fan-rpm) below.
+
+Uninstall: `cachyos/install-applet --uninstall`, `cachyos/install-units
+--uninstall`, and delete the checkout. Optionally also remove the rule
+(`sudo rm /etc/udev/rules.d/99-micachy.rules`, then reload udev).
+
+### On Omarchy
+
+The same checkout is an Omarchy 4 plugin, which is how this project started:
+
+```bash
+omarchy plugin add https://github.com/villenull/micachy --enable
+```
+
+That is the entire install: the panel starts the backend itself, from the
+checkout Omarchy just cloned. `omarchy plugin update` keeps that checkout
+current, so there is a single copy on disk.
+
+The device-access rule in step 1 above is needed here too; the panel surfaces
+it itself when the daemon reports it cannot open a device.
+
+On hardware other than the reference set, run the config wizard before
 expecting light. `bin/` is not on PATH, so it is invoked through the system
 interpreter with the plugin path spelled out:
 
@@ -97,6 +143,8 @@ Uninstall: `omarchy plugin remove io.github.villenull.micachy` stops the
 panel and its daemons and removes the checkout. Optionally also remove the
 rule (`sudo rm /etc/udev/rules.d/99-micachy.rules`, then reload udev);
 nothing else was ever installed outside the plugin folder.
+
+### Fan RPM
 
 Requires Python 3.11+ and a running Wayland session; the backend itself is
 stdlib-only, so there is nothing else to install. Fan RPM additionally needs
@@ -140,7 +188,9 @@ readings survive a boot without it.
 > Since 0.5.0 both controllers are driven directly — raw hidraw writes for
 > the board, I2C for the card — and OpenRGB is gone entirely.
 
-### Desktop integration
+### Omarchy desktop integration
+
+![Micachy's Omarchy panel](docs/panel-linked.png)
 
 **Omarchy 4.** The checkout above already is the plugin, so the bar widget
 arrives with it: a bulb icon that dims when the LEDs are frozen, and a panel
@@ -172,6 +222,23 @@ One optional extra:
 | [`omarchy/micachy-menu.jsonc`](omarchy/micachy-menu.jsonc) | `~/.config/omarchy/extensions/omarchy-menu.jsonc` | Micachy in the Omarchy menu and its search |
 
 ## Keys
+
+With the Plasma popup open:
+
+| Key | Action |
+|---|---|
+| `1`–`6` | set static / rainbow / spectrum / chase / breathing / unhinged |
+| `0` | set off |
+| `+` `-` | speed up / down, every zone |
+| `u` | link / unlink all zones |
+| `d` | cooler display on / off |
+| `Escape` | close the popup |
+
+The number keys act on the first zone block, which while linked is the only
+one there is. Middle-clicking the bulb links and unlinks without opening
+anything.
+
+### Omarchy panel keys
 
 The panel takes a keyboard cursor, the same way Omarchy's other bar panels do:
 open it, then move without ever touching the mouse.
@@ -228,6 +295,9 @@ logs the same line when it starts, after waiting a bounded 20 s for a
 controller that is merely slow to appear.
 
 ### Lighting that follows your theme
+
+Omarchy only for now: the colours are read from Omarchy's theme directory,
+which Plasma does not have, so the Plasma applet offers the fixed colours.
 
 Give a colour a *role* — `accent`, `red`, `orange`, `yellow`, `green`, `cyan`,
 `blue`, `magenta` — instead of a value, and it re-resolves whenever you change

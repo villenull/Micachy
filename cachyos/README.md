@@ -1,12 +1,12 @@
 # Micachy on CachyOS / KDE Plasma
 
-This branch runs Micachy outside Omarchy. Step 1 (this folder) gets the
-lighting and cooler display working from the CLI and a panel applet; KDE
-theme colours come later.
+The details behind the install steps in the [main README](../README.md):
+what each script in this folder does, and the things worth knowing once it is
+running. KDE theme colours for the LEDs are not here yet.
 
 ## 1. udev rule (once, needs root)
 
-Same two lines as the main README — the board's Aura controller and the
+The same two lines the main README prints — the board's Aura controller and the
 cooler display are root-only hidraw nodes until this lands:
 
 ```bash
