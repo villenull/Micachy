@@ -28,7 +28,7 @@ SENSORS = {
     "k10temp-pci-00c3": {"Tctl": {"temp1_input": 52.2}},
     "amdgpu-pci-0300": {"fan1": {"fan1_input": 1200},
                         "edge": {"temp1_input": 40.0}},
-    "nct6687-isa-0a20": {"CPU Fan": {"fan1_input": 768}},
+    "nct6799-isa-0290": {"fan2": {"fan2_input": 768}},
 }
 
 
@@ -85,9 +85,9 @@ class TestSensorsPresent:
         assert hwmon.read_cpu_fan_rpm() == 768
 
     def test_implausible_fan_rpm_is_rejected(self, monkeypatch):
-        """Unpopulated headers report tens of thousands of RPM, not zero."""
+        """A register that holds no fan speed reads as tens of thousands."""
         fake_sensors(monkeypatch, stdout=json.dumps(
-            {"nct6687-isa-0a20": {"CPU Fan": {"fan1_input": 65535}}}))
+            {"nct6799-isa-0290": {"fan2": {"fan2_input": 65535}}}))
 
         assert hwmon.read_fans() == []
         assert hwmon.read_cpu_fan_rpm() is None
@@ -103,23 +103,32 @@ class TestSensorsPresent:
         assert hwmon.read_gpu_temp() == 40.0
 
 class TestCpuFanSource:
-    """Only nct6687 is a CPU-fan source; the GPU fan must never qualify."""
+    """Only nct6775's CPU_FAN channel is a CPU-fan source."""
 
-    def test_cpu_fan_preferred_over_pump_fan(self, monkeypatch):
+    def test_cpu_fan_header_is_read_not_its_neighbours(self, monkeypatch):
+        """The chassis headers sit on the same chip and spin at similar
+        speeds; only channel 2 is the cooler."""
+        fake_sensors(monkeypatch, stdout=json.dumps(
+            {"nct6799-isa-0290": {"fan1": {"fan1_input": 0},
+                                  "fan2": {"fan2_input": 438},
+                                  "fan3": {"fan3_input": 776}}}))
+
+        assert hwmon.read_cpu_fan_rpm() == 438
+
+    def test_forced_nct6687_is_not_a_source(self, monkeypatch):
+        """nct6687d with force=1 attaches to this board's NCT6799D and reports
+        constants read from the wrong registers. Those exact values shipped
+        as the fan speed through 0.6.0, so a chip by that name must yield no
+        reading rather than a wrong one."""
         fake_sensors(monkeypatch, stdout=json.dumps(
             {"nct6687-isa-0a20": {"CPU Fan": {"fan1_input": 768},
-                                  "Pump Fan": {"fan2_input": 1500}}}))
+                                  "Pump Fan": {"fan2_input": 255}}}))
 
-        assert hwmon.read_cpu_fan_rpm() == 768
-
-    def test_pump_fan_is_fallback_when_cpu_fan_missing(self, monkeypatch):
-        fake_sensors(monkeypatch, stdout=json.dumps(
-            {"nct6687-isa-0a20": {"Pump Fan": {"fan2_input": 1500}}}))
-
-        assert hwmon.read_cpu_fan_rpm() == 1500
+        assert hwmon.read_cpu_fan_rpm() is None
+        assert hwmon.cpu_fan_chip_present() is False
 
     def test_no_source_returns_none(self, monkeypatch):
-        """No nct6687 chip (driver not loaded) means no CPU fan to read."""
+        """No Super I/O chip (module not loaded) means no CPU fan to read."""
         fake_sensors(monkeypatch, stdout=json.dumps(
             {"k10temp-pci-00c3": {"Tctl": {"temp1_input": 52.2}},
              "amdgpu-pci-0300": {"fan1": {"fan1_input": 0},
@@ -140,41 +149,41 @@ class TestChipPresence:
     """Whether the chip exists at all, which no reading can report.
 
     `read_cpu_fan_rpm` answers None for a stopped fan and for an absent driver
-    alike. The two need opposite responses from the user — one is a package
-    and a reboot, the other is nothing — so something has to tell them apart,
+    alike. The two need opposite responses from the user — one is a module
+    to load, the other is nothing — so something has to tell them apart,
     and it cannot be inferred from the absence of a number.
     """
 
     def test_present_when_the_chip_is_exposed(self, monkeypatch):
         fake_sensors(monkeypatch, stdout=json.dumps(SENSORS))
 
-        assert hwmon.nct6687_present() is True
+        assert hwmon.cpu_fan_chip_present() is True
 
     def test_absent_without_the_driver(self, monkeypatch):
         fake_sensors(monkeypatch, stdout=json.dumps(
             {"k10temp-pci-00c3": {"Tctl": {"temp1_input": 52.2}},
              "amdgpu-pci-0300": {"fan1": {"fan1_input": 0}}}))
 
-        assert hwmon.nct6687_present() is False
+        assert hwmon.cpu_fan_chip_present() is False
 
     def test_present_even_when_the_fan_reads_zero(self, monkeypatch):
         """A stopped fan is still a loaded driver — the distinction `status`
-        turns into "nothing to do" versus "install a package"."""
+        turns into "nothing to do" versus "load a module"."""
         fake_sensors(monkeypatch, stdout=json.dumps(
-            {"nct6687-isa-0a20": {"CPU Fan": {"fan1_input": 0}}}))
+            {"nct6799-isa-0290": {"fan2": {"fan2_input": 0}}}))
 
         assert hwmon.read_cpu_fan_rpm() is None
-        assert hwmon.nct6687_present() is True
+        assert hwmon.cpu_fan_chip_present() is True
 
     def test_absent_when_sensors_cannot_be_read(self, monkeypatch):
         """No `sensors` at all is the same silence, and must not raise."""
         fake_sensors(monkeypatch, raises=FileNotFoundError)
 
-        assert hwmon.nct6687_present() is False
+        assert hwmon.cpu_fan_chip_present() is False
 
     def test_tolerates_a_pre_read_snapshot(self, monkeypatch):
         """`status` reads `sensors` once and passes the snapshot down, so this
         must not spawn a second one."""
         fake_sensors(monkeypatch, raises=AssertionError("re-spawned sensors"))
 
-        assert hwmon.nct6687_present(SENSORS) is True
+        assert hwmon.cpu_fan_chip_present(SENSORS) is True

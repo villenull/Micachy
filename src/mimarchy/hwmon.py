@@ -7,10 +7,19 @@ import subprocess
 import time
 from dataclasses import dataclass
 
-# nct6687d reports a sentinel-ish garbage value (tens of thousands of RPM)
-# for unpopulated/idle Super I/O fan headers instead of 0 — no real case or
-# CPU fan exceeds this, so treat anything above it as "not connected".
+# No real case or CPU fan exceeds this, so anything above it is a register
+# that does not hold a fan speed rather than a fan. It is a backstop, not a
+# validity check: the wrong driver on this board produced 768 "rpm" that
+# sailed under it (see read_cpu_fan_rpm).
 MAX_PLAUSIBLE_RPM = 10_000
+
+# The board's Super I/O is an NCT6799D (chip ID 0xd806), which the in-tree
+# nct6775 driver exposes as `nct6799-isa-0290`. The prefix covers that
+# driver's whole family and deliberately excludes `nct6687`.
+CPU_FAN_CHIP_PREFIX = "nct67"
+# nct6775 has no header names to offer, only channel numbers. Channel 2 is
+# the CPU_FAN header on ASUS boards.
+CPU_FAN_LABEL = "fan2"
 
 
 @dataclass
@@ -100,9 +109,9 @@ def read_temps(data: dict | None = None) -> list[TempReading]:
 def read_cpu_temp(data: dict | None = None) -> float | None:
     """CPU package temperature from k10temp's Tctl.
 
-    Deliberately not nct6687's "CPU" reading: that driver reports implausible
-    near-zero values on this board (see README), while k10temp reads the CPU's
-    own sensor and is trustworthy.
+    Deliberately not the Super I/O's CPUTIN: that is a motherboard thermistor
+    near the socket and lags well behind the die, while k10temp reads the
+    CPU's own sensor.
     """
     for t in read_temps(data):
         if t.chip.startswith("k10temp") and t.label == "Tctl":
@@ -132,43 +141,44 @@ def read_gpu_temp(data: dict | None = None) -> float | None:
 def read_cpu_fan_rpm(data: dict | None = None) -> float | None:
     """The cooler's fan speed, for the panel's RPM readout.
 
-    Prefers nct6687's "CPU Fan" over "Pump Fan": on this board the latter
-    reports an implausible ~255 while the former tracks the cooler's fans.
+    Read from the in-tree nct6775 driver's `fan2`, the CPU_FAN header.
 
-    Only nct6687 counts as a CPU-fan source. The discrete GPU's fan1
-    (amdgpu-pci-0300) is the card's own fan — it idles at 0 under fan-stop
-    and must never be reported here. Checked 2026-09-17: `sensors -j`
-    exposes no other fan input (only amdgpu fan1 = 0), every
-    /sys/class/hwmon/hwmon*/fan*_input agrees, and the 'asus' (eeepc-wmi)
-    node exports no sensor files at all — so with the nct6687 chip absent
-    there is simply no CPU fan to read and this returns None.
+    Until 0.6.0 this read "CPU Fan" from the out-of-tree nct6687d driver
+    loaded with force=1, and that number was never a fan speed. The chip is
+    an NCT6799D, not an NCT6687D; forced onto it, nct6687 read the wrong
+    registers and returned constants — 768 (0x0300) for "CPU Fan" and 255
+    (0x00FF) for "Pump Fan", unchanged from idle to full load, beside
+    temperatures of 3.5 °C and an EC firmware version of 255.255. Checked
+    2026-11-18: under nct6775 the same header reads ~450 rpm idle and ~1720
+    under an all-core load, tracking its PWM. So nct6687 is not a fallback
+    here; a chip by that name is ignored.
 
-    The nct6687 chip appears only with the out-of-tree nct6687d driver
-    (force=1 plus acpi_enforce_resources=lax on the kernel command line;
-    see docs/hardware-notes.md). Until that is installed, None is the
-    correct answer, not 0 and not the GPU fan.
+    The discrete GPU's fan1 (amdgpu-pci-0300) is the card's own fan — it
+    idles at 0 under fan-stop and must never be reported here.
+
+    None means no reading: either the chip is absent (see
+    cpu_fan_chip_present) or the fan is stopped.
     """
-    fans = read_fans(data)
-    for preferred in ("CPU Fan", "Pump Fan"):
-        for f in fans:
-            if f.chip.startswith("nct6687") and f.label == preferred and f.rpm > 0:
-                return f.rpm
+    for f in read_fans(data):
+        if (f.chip.startswith(CPU_FAN_CHIP_PREFIX) and f.label == CPU_FAN_LABEL
+                and f.rpm > 0):
+            return f.rpm
     return None
 
 
-def nct6687_present(data: dict | None = None) -> bool:
-    """Whether the nct6687 Super I/O chip is exposed at all.
+def cpu_fan_chip_present(data: dict | None = None) -> bool:
+    """Whether the Super I/O chip that carries the CPU fan is exposed at all.
 
-    The chip only appears once the out-of-tree driver is loaded, so this is
-    the difference between a fan that is stopped and a fan that nothing is
-    reading. `read_cpu_fan_rpm` cannot tell them apart — it returns None for
-    both, because a loaded chip reporting 0 rpm and an absent chip are the
-    same one line of output. They are not the same problem, and the fix is
-    only obvious once you know which one you have: one needs a reboot, the
-    other needs the driver.
+    The chip has no PCI modalias, so nct6775 is never autoloaded: it appears
+    only once something loads the module. That makes this the difference
+    between a fan that is stopped and a fan that nothing is reading.
+    `read_cpu_fan_rpm` cannot tell them apart — it returns None for both,
+    because a loaded chip reporting 0 rpm and an absent chip are the same one
+    line of output. They are not the same problem, and the fix is only
+    obvious once you know which one you have.
     """
     readings = data if data is not None else _read_sensors_json()
-    return any(chip.startswith("nct6687") for chip in readings)
+    return any(chip.startswith(CPU_FAN_CHIP_PREFIX) for chip in readings)
 
 
 def read_cpu_load() -> int:

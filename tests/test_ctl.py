@@ -44,7 +44,7 @@ def isolated(tmp_path, monkeypatch):
     # A live RPM implies the driver is loaded. Without this the fixture
     # contradicts itself, and every status test would carry a NOT DETECTED line
     # for a fan it had just reported a reading for.
-    monkeypatch.setattr(ctl, "nct6687_present", lambda data=None: True)
+    monkeypatch.setattr(ctl, "cpu_fan_chip_present", lambda data=None: True)
     monkeypatch.setattr(ctl, "load_config", _NoConfig)
     yield
 
@@ -159,14 +159,14 @@ class TestFanDiagnostics:
     you know which one you have.
 
     `read_cpu_fan_rpm` returns None both when nothing is reading the fan — the
-    out-of-tree driver was never installed — and when a loaded chip reports
+    module was never loaded — and when a loaded chip reports
     0 rpm because the fan is stopped. Those look identical in the output, and
     they are the same blank line pointed at two opposite pieces of advice.
     """
 
     def _status(self, capsys, monkeypatch, rpm, driver):
         monkeypatch.setattr(ctl, "read_cpu_fan_rpm", lambda data=None: rpm)
-        monkeypatch.setattr(ctl, "nct6687_present", lambda data=None: driver)
+        monkeypatch.setattr(ctl, "cpu_fan_chip_present", lambda data=None: driver)
         seed(cpu_fans=("rainbow", 0.6))
         assert ctl.main(["status"]) == 0
         return capsys.readouterr().out
@@ -182,8 +182,8 @@ class TestFanDiagnostics:
                                                                 monkeypatch):
         out = self._status(capsys, monkeypatch, None, False)
         assert "fan: NOT DETECTED" in out
-        assert "nct6687d" in out
-        # The point of the line: the user is told which package is missing
+        assert "nct6775" in out
+        # The point of the line: the user is told which driver is missing
         # rather than left to infer it from an absent number.
         assert "not loaded" in out
 
@@ -191,7 +191,7 @@ class TestFanDiagnostics:
             self, capsys, monkeypatch):
         out = self._status(capsys, monkeypatch, None, True)
         assert "fan: STOPPED" in out
-        assert "nct6687 is loaded" in out
+        assert "nct6775 is loaded" in out
         assert "NOT DETECTED" not in out
 
     def test_temperatures_still_print_alongside_a_missing_fan(self, capsys,
@@ -205,7 +205,7 @@ class TestFanDiagnostics:
         """The widget reads sensors from JSON, so the distinction has to be
         available there too — a human-only line would leave the panel blank."""
         monkeypatch.setattr(ctl, "read_cpu_fan_rpm", lambda data=None: None)
-        monkeypatch.setattr(ctl, "nct6687_present", lambda data=None: False)
+        monkeypatch.setattr(ctl, "cpu_fan_chip_present", lambda data=None: False)
         seed(cpu_fans=("rainbow", 0.6))
         assert ctl.main(["status", "--json"]) == 0
         payload = json.loads(capsys.readouterr().out)

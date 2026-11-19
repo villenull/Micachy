@@ -25,9 +25,9 @@ from mimarchy.service import (claim_pidfile, clear_note, owner_pid, write_note)
 
 
 def build_frame() -> DisplayFrame:
-    # The RPM comes from read_cpu_fan_rpm(): nct6687's "CPU Fan" (the
-    # out-of-tree nct6687d driver, force=1 plus acpi_enforce_resources=lax;
-    # see docs/hardware-notes.md). The 64-byte frame has no "unknown"
+    # The RPM comes from read_cpu_fan_rpm(): the CPU_FAN header as the
+    # in-tree nct6775 driver reports it (see docs/hardware-notes.md). The
+    # 64-byte frame has no "unknown"
     # encoding, so a missing reading (None, e.g. driver not loaded) still
     # sends 0 on the wire and the panel truncates to the nearest 100, which
     # renders as 0. `mimarchy-ctl status` forwards the None, not this 0,

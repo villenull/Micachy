@@ -16,8 +16,8 @@
   I2C for the card), so there is no detector list, no SDK server, and no
   broad-detection freeze hazard. The remaining privileged surface is one
   udev rule for the two hidraw nodes (printed inline by the README, never
-  copied out of the checkout by root) plus the out-of-tree `nct6687d` fan
-  driver. Daemons are panel-supervised with pidfile singletons, not
+  copied out of the checkout by root) plus one `modules-load.d` line for
+  the in-tree `nct6775` fan driver. Daemons are panel-supervised with pidfile singletons, not
   systemd units. The marketplace review is bound to exact commits on
   `main`; do not move `main` mid-review without a reason.
 - **Install is plugin-add only.** `omarchy plugin add

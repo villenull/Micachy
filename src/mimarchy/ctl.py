@@ -35,7 +35,7 @@ import time
 from mimarchy import detection, lightstate
 from mimarchy.config import load_config
 from mimarchy.effects import COLOUR_EFFECTS, EFFECTS, SPEED_LEVELS, nearest_speed
-from mimarchy.hwmon import (nct6687_present, read_cpu_fan_rpm, read_cpu_temp,
+from mimarchy.hwmon import (cpu_fan_chip_present, read_cpu_fan_rpm, read_cpu_temp,
                             read_gpu_temp, snapshot)
 from mimarchy.service import (daemon_alive, daemon_script, read_note, spawn_daemon,
                               stop_daemon)
@@ -150,7 +150,7 @@ def cmd_status(args: argparse.Namespace) -> int:
             "cpu_temp": read_cpu_temp(sensors),
             "gpu_temp": read_gpu_temp(sensors),
             "cpu_fan_rpm": read_cpu_fan_rpm(sensors),
-            "cpu_fan_driver_loaded": nct6687_present(sensors),
+            "cpu_fan_driver_loaded": cpu_fan_chip_present(sensors),
         },
     }
 
@@ -190,12 +190,12 @@ def _human_status(payload: dict) -> str:
     # A missing fan reading is two different problems wearing the same silence:
     # no driver means nothing is reading the fan at all, while a loaded chip at
     # 0 rpm means the fan is simply stopped. Same blank line, opposite fixes —
-    # one is a package and a reboot, the other is nothing at all.
+    # one is a module to load, the other is nothing at all.
     if sensors["cpu_fan_rpm"] is None:
         if sensors["cpu_fan_driver_loaded"]:
-            lines.append("fan: STOPPED — nct6687 is loaded and reporting 0 rpm")
+            lines.append("fan: STOPPED — nct6775 is loaded and reporting 0 rpm")
         else:
-            lines.append("fan: NOT DETECTED — the nct6687d driver is not loaded, "
+            lines.append("fan: NOT DETECTED — the nct6775 driver is not loaded, "
                          "so no CPU fan sensor exists (see README)")
     return "\n".join(line for line in lines if line)
 

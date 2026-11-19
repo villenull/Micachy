@@ -128,13 +128,26 @@ card for the same period the renderer is using. Mapping rung-to-rung instead
 lines up only the ends and leaves the card at roughly twice our rate everywhere
 between.
 
-## Fan sensors need an out-of-tree driver
+## Fan sensors: nct6775, not nct6687d
 
-`nct6687d` (AUR: `nct6687d-dkms-git`), loaded with `force=1` — the driver gates
-on a vendor allowlist this board is not on and refuses with `ENODEV` otherwise.
-It also needs `acpi_enforce_resources=lax` on the kernel command line, since ACPI
-otherwise holds the Super I/O ports exclusively. `hwmon.py` drops readings above
-10,000 RPM: unpopulated headers report sentinel garbage rather than zero.
+The Super I/O is an NCT6799D (chip ID `0xd806`), served by the in-tree
+`nct6775` driver as `nct6799-isa-0290`. It has no modalias, so the module needs
+a `modules-load.d` line. `fan2` is the CPU_FAN header; `fan3` and `fan4` are
+populated chassis headers that follow the same PWM curve, so speed alone does
+not tell the three apart.
+
+Through 0.6.0 this project used the out-of-tree `nct6687d` with `force=1`
+instead, and reported its "CPU Fan" value as the cooler's speed. It was not
+one. The driver said as much at load (`attaching nct6687 to unrecognised chip
+ID 0xd806 ... readings may be incorrect`, `EC firmware version 255.255`) and
+the values were constants: 768, 255, 65280, 16383 across the fan channels,
+3.5 °C and −0.5 °C for temperatures, none of them moving between idle and an
+all-core load. 768 passed for an idle fan, which is how it survived. Measured
+2026-11-18 under nct6775: `fan2` ~450 rpm idle, ~1720 rpm at full load.
+
+`acpi_enforce_resources=lax` was on the kernel command line for that
+measurement, a leftover of the nct6687d setup. Whether nct6775 needs it on
+this board is untested.
 
 Temperatures and lighting work without any of this.
 
