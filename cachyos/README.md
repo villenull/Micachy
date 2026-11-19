@@ -18,6 +18,26 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger --action=add --subsystem-match=hidraw
 ```
 
+### Optional: join the `input` group
+
+The `uaccess` tag grants the nodes to whoever holds the active login session,
+and logind applies that grant a few seconds *after* `systemd --user` has
+already started the daemons. So at every login both services fail once or
+twice with "permission denied" and only stick when `Restart=on-failure`
+retries them — about 20 seconds of dark lights and two misleading "install
+the udev rule" lines in the journal.
+
+The rule also sets `GROUP="input"`, which is in force from the moment the
+node appears, so group membership closes the race:
+
+```bash
+sudo usermod -aG input "$USER"   # then log out and back in
+```
+
+The cost: `input` also owns `/dev/input/event*`, so every program you run can
+then read raw keystrokes. If you would rather not grant that, skip this step —
+the retry gets there on its own.
+
 ## 2. Configure zones
 
 ```bash
