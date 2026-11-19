@@ -293,15 +293,24 @@ PlasmoidItem {
         Layout.preferredWidth: Kirigami.Units.gridUnit * 26
         // Unlinked, this is one block per zone, so the height follows the
         // content up to a cap and scrolls beyond it.
-        Layout.minimumHeight: Kirigami.Units.gridUnit * 10
-        // The header is part of this item's height, so it has to be part of
-        // the sum: sized from the content alone, the popup came out one
-        // header too short and scrolled with everything linked.
-        Layout.preferredHeight: Math.min(
+        //
+        // The header is part of this item's height, so it is part of the
+        // sum: sized from the content alone, the popup came out one header
+        // too short.
+        readonly property real fittedHeight: Math.min(
             (header ? Math.max(header.implicitHeight, header.height) : 0)
                 + content.implicitHeight + topPadding + bottomPadding
                 + Kirigami.Units.largeSpacing,
             Kirigami.Units.gridUnit * 40)
+
+        // Minimum as well as preferred, and that is the half that matters.
+        // Plasma saves a popup's size per applet (popupHeight in
+        // plasma-org.kde.plasma.desktop-appletsrc) and reopens at the saved
+        // size, whatever the preferred one has become since; only the
+        // minimum overrides it. With preferred alone, the height recorded on
+        // the first open stuck, and every later layout scrolled inside it.
+        Layout.minimumHeight: fittedHeight
+        Layout.preferredHeight: fittedHeight
         Layout.maximumHeight: Kirigami.Units.gridUnit * 40
 
         // Stated outright rather than left to derive from the scroll view,
