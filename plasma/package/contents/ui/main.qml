@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -216,7 +217,7 @@ PlasmoidItem {
         onTriggered: root.refresh()
     }
 
-    onExpandedChanged: if (expanded) refresh()
+    onExpandedChanged: if (root.expanded) refresh()
 
     // ---- acting ------------------------------------------------------------
 
@@ -243,10 +244,31 @@ PlasmoidItem {
 
     // ---- panel icon --------------------------------------------------------
 
-    // The lit and unlit bulb are the one piece of state worth reading without
-    // opening anything: unlit means the daemon is stopped, the effect is
-    // `off`, or there is no reading yet.
-    Plasmoid.icon: (backendFailed || !lightsLive) ? "redshift-status-off" : "redshift-status-on"
+    // A plain bulb drawn by this package, because the icon theme has none:
+    // its nearest, the night-light icon, carries a moon. Drawn as a mask in
+    // the panel's own text colour, so it follows light and dark themes.
+    //
+    // Dimmed is the one piece of state worth reading without opening
+    // anything: the daemon is stopped, the effect is `off`, or there is no
+    // reading yet.
+    compactRepresentation: MouseArea {
+        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        // Middle-click links and unlinks, as on the Quickshell bar.
+        onClicked: function (mouse) {
+            if (mouse.button === Qt.MiddleButton) root.run(["link", "toggle"])
+            else root.expanded = !root.expanded
+        }
+
+        Kirigami.Icon {
+            anchors.fill: parent
+            source: Qt.resolvedUrl("../icons/bulb.svg")
+            isMask: true
+            color: Kirigami.Theme.textColor
+            active: parent.containsMouse
+            opacity: (root.backendFailed || !root.lightsLive) ? 0.4 : 1
+        }
+    }
 
     toolTipMainText: "Micachy"
     toolTipSubText: {
@@ -260,9 +282,6 @@ PlasmoidItem {
         return parts.join(" · ")
     }
 
-    // Middle-click on the icon links and unlinks, as on the Quickshell bar.
-    Plasmoid.onSecondaryActivated: run(["link", "toggle"])
-
     // ---- popup -------------------------------------------------------------
 
     fullRepresentation: PlasmaExtras.Representation {
@@ -275,9 +294,19 @@ PlasmoidItem {
         // Unlinked, this is one block per zone, so the height follows the
         // content up to a cap and scrolls beyond it.
         Layout.minimumHeight: Kirigami.Units.gridUnit * 10
-        Layout.preferredHeight: Math.min(column.implicitHeight + Kirigami.Units.largeSpacing * 2,
-                                         Kirigami.Units.gridUnit * 40)
+        // The header is part of this item's height, so it has to be part of
+        // the sum: sized from the content alone, the popup came out one
+        // header too short and scrolled with everything linked.
+        Layout.preferredHeight: Math.min(
+            (header ? Math.max(header.implicitHeight, header.height) : 0)
+                + content.implicitHeight + topPadding + bottomPadding
+                + Kirigami.Units.largeSpacing,
+            Kirigami.Units.gridUnit * 40)
         Layout.maximumHeight: Kirigami.Units.gridUnit * 40
+
+        // Stated outright rather than left to derive from the scroll view,
+        // whose own width derives from this: that is a binding loop.
+        implicitWidth: Kirigami.Units.gridUnit * 26
 
         collapseMarginsHint: true
         focus: true
@@ -310,12 +339,23 @@ PlasmoidItem {
         contentItem: PlasmaComponents.ScrollView {
             id: scroll
             contentWidth: availableWidth
+            // Nothing in here is wider than the popup; without this the
+            // margins below read as overflow and a horizontal bar appears.
+            QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+
+            // The margins live on this wrapper, so the scroll view measures
+            // them as content instead of clipping the last row by their sum.
+            Item {
+                id: content
+                width: scroll.availableWidth
+                implicitHeight: column.implicitHeight + Kirigami.Units.largeSpacing * 2
 
             ColumnLayout {
                 id: column
-                width: scroll.availableWidth - Kirigami.Units.largeSpacing * 2
-                x: Kirigami.Units.largeSpacing
-                y: Kirigami.Units.largeSpacing
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Kirigami.Units.largeSpacing
                 spacing: Kirigami.Units.largeSpacing
 
                 // A sentence rather than an empty popup. The next successful
@@ -378,7 +418,7 @@ PlasmoidItem {
                     onClicked: root.run(["display", "toggle"])
                 }
 
-                Item { Layout.preferredHeight: 1 }
+            }
             }
         }
     }

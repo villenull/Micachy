@@ -8,7 +8,7 @@
         ],
         "Category": "System Information",
         "Description": "ARGB lighting and cooler display control",
-        "Icon": "redshift-status-on",
+        "Icon": "preferences-desktop-color",
         "Id": "io.github.villenull.micachy",
         "License": "MIT",
         "Name": "Micachy",
