@@ -270,6 +270,10 @@ PlasmoidItem {
         }
     }
 
+    // The pin in the popup's heading. Remembered across sessions, as the
+    // tray's own pin is.
+    hideOnWindowDeactivate: !Plasmoid.configuration.pin
+
     toolTipMainText: "Micachy"
     toolTipSubText: {
         if (backendFailed) return "Backend failed to run"
@@ -287,10 +291,11 @@ PlasmoidItem {
     fullRepresentation: PlasmaExtras.Representation {
         id: popup
 
-        // Wide enough for seven effect cells to carry their own names, which
-        // is the only thing in here that sets a width.
-        Layout.minimumWidth: Kirigami.Units.gridUnit * 26
-        Layout.preferredWidth: Kirigami.Units.gridUnit * 26
+        // Wide enough for seven effect cells to carry their own names at the
+        // desktop's ordinary font size, which is the only thing in here that
+        // sets a width.
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 30
+        Layout.preferredWidth: Kirigami.Units.gridUnit * 30
         // Unlinked, this is one block per zone, so the height follows the
         // content up to a cap and scrolls beyond it.
         //
@@ -319,7 +324,7 @@ PlasmoidItem {
 
         // Stated outright rather than left to derive from the scroll view,
         // whose own width derives from this: that is a binding loop.
-        implicitWidth: Kirigami.Units.gridUnit * 26
+        implicitWidth: Kirigami.Units.gridUnit * 30
 
         collapseMarginsHint: true
         focus: true
@@ -341,11 +346,70 @@ PlasmoidItem {
             event.accepted = true
         }
 
+        // Laid out like the system tray's own popups (Bluetooth, Networks):
+        // a level-1 title with a pin on the right, and under it the
+        // switches. The tray draws that title and pin for the applets it
+        // hosts; this one sits on the panel by itself, so it draws its own.
         header: PlasmaExtras.PlasmoidHeading {
-            contentItem: Kirigami.Heading {
-                level: 3
-                text: "Lighting"
-                leftPadding: Kirigami.Units.smallSpacing
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Kirigami.Heading {
+                        Layout.fillWidth: true
+                        level: 1
+                        text: "Micachy"
+                        elide: Text.ElideRight
+                        leftPadding: Kirigami.Units.smallSpacing
+                    }
+
+                    PlasmaComponents.ToolButton {
+                        id: pinButton
+                        checkable: true
+                        checked: Plasmoid.configuration.pin
+                        icon.name: "window-pin"
+                        text: "Keep Open"
+                        display: PlasmaComponents.AbstractButton.IconOnly
+                        onToggled: Plasmoid.configuration.pin = checked
+
+                        PlasmaComponents.ToolTip {
+                            text: pinButton.text
+                        }
+                    }
+                }
+
+                // Icons instead of words, with the words in the tooltips.
+                // Both switches sit in the heading because neither belongs
+                // to a zone: one decides how many zone blocks there are, the
+                // other is a different device altogether.
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.largeSpacing
+                    visible: !root.backendFailed && root.status !== null
+
+                    HeaderSwitch {
+                        icon: "link-symbolic"
+                        checked: root.linked
+                        hint: root.linked ? "Zones linked — driven together"
+                                          : "Zones unlinked — driven independently"
+                        onClicked: root.run(["link", "toggle"])
+                    }
+
+                    HeaderSwitch {
+                        icon: "computer-symbolic"
+                        checked: root.displayActive
+                        // The display has no off command in its protocol, so
+                        // "off" means the telemetry stream stopped and it
+                        // blanks itself about fifty seconds later.
+                        hint: root.displayActive ? "Cooler display on — streaming telemetry"
+                                                 : "Cooler display off — blanks ~50s after stopping"
+                        onClicked: root.run(["display", "toggle"])
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
             }
         }
 
@@ -387,16 +451,6 @@ PlasmoidItem {
                     opacity: 0.6
                 }
 
-                // Above everything it applies to, because it decides how much
-                // of the rest there is: one block, or one per zone.
-                ToggleRow {
-                    visible: !root.backendFailed && root.status !== null
-                    label: "Link all zones"
-                    description: root.linked ? "driven together" : "driven independently"
-                    checked: root.linked
-                    onClicked: root.run(["link", "toggle"])
-                }
-
                 // Stated before anything below it is touched: a frozen strip
                 // answers every control here identically. The daemon's own
                 // note (the udev hint, e.g.) wins when it left one.
@@ -415,22 +469,6 @@ PlasmoidItem {
                     ZoneBlock { Layout.fillWidth: true }
                 }
 
-                Kirigami.Separator {
-                    Layout.fillWidth: true
-                    visible: !root.backendFailed && root.status !== null
-                }
-
-                ToggleRow {
-                    visible: !root.backendFailed && root.status !== null
-                    label: "Cooler display"
-                    // The display has no off command in its protocol, so
-                    // "off" means the telemetry stream stopped and it blanks
-                    // itself about fifty seconds later.
-                    description: root.displayActive ? "streaming telemetry" : "blanks ~50s after stopping"
-                    checked: root.displayActive
-                    onClicked: root.run(["display", "toggle"])
-                }
-
             }
             }
         }
@@ -438,55 +476,51 @@ PlasmoidItem {
 
     // ---- pieces ------------------------------------------------------------
 
-    // A label, a line under it, and a switch that shows the backend's value.
+    // A switch and the icon that says what it switches, the tray's own
+    // header idiom, with the wording moved into a tooltip.
     //
-    // The MouseArea sits over the whole row, switch included, on purpose. A
+    // The MouseArea sits over the whole thing, switch included, on purpose. A
     // Switch that takes its own click flips itself and drops its `checked`
     // binding, after which it shows what was clicked rather than what the
     // backend did. Kept out of reach, it stays a readout of `status`.
-    component ToggleRow: Item {
+    component HeaderSwitch: Item {
         id: toggle
 
-        property string label: ""
-        property string description: ""
+        property string icon: ""
+        property string hint: ""
         property bool checked: false
         signal clicked()
 
-        Layout.fillWidth: true
+        implicitWidth: toggleLayout.implicitWidth
         implicitHeight: toggleLayout.implicitHeight
 
         RowLayout {
             id: toggleLayout
-            anchors.left: parent.left
-            anchors.right: parent.right
-            spacing: Kirigami.Units.largeSpacing
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                PlasmaComponents.Label {
-                    Layout.fillWidth: true
-                    text: toggle.label
-                }
-
-                PlasmaComponents.Label {
-                    Layout.fillWidth: true
-                    text: toggle.description
-                    font: Kirigami.Theme.smallFont
-                    opacity: 0.6
-                }
-            }
+            spacing: Kirigami.Units.smallSpacing
 
             PlasmaComponents.Switch {
                 checked: toggle.checked
             }
+
+            Kirigami.Icon {
+                source: toggle.icon
+                implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                opacity: toggle.checked ? 1 : 0.6
+            }
         }
 
         MouseArea {
+            id: toggleMouse
             anchors.fill: parent
+            hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: toggle.clicked()
+        }
+
+        PlasmaComponents.ToolTip {
+            visible: toggleMouse.containsMouse
+            text: toggle.hint
         }
     }
 
@@ -601,13 +635,19 @@ PlasmoidItem {
         id: zone
 
         required property var modelData
+        required property int index
 
         readonly property var target: root.targetFor(modelData)
         readonly property color baseColour: root.targetColour(target)
 
         spacing: Kirigami.Units.smallSpacing
 
-        Kirigami.Separator { Layout.fillWidth: true }
+        // Between zones only: the first block already sits under the
+        // heading's own line.
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            visible: zone.index > 0
+        }
 
         RowLayout {
             Layout.fillWidth: true
@@ -650,7 +690,7 @@ PlasmoidItem {
                     required property string modelData
 
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 2.6
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * 3
                     selected: zone.target ? zone.target.effect === modelData : false
                     onClicked: root.chooseEffect(zone.modelData, index)
 
@@ -674,11 +714,13 @@ PlasmoidItem {
                             text: effectCell.modelData
                             horizontalAlignment: Text.AlignHCenter
                             fontSizeMode: Text.HorizontalFit
+                            // Both minimums, because the desktop font is
+                            // set in points and Qt then ignores the pixel
+                            // one, falling back to a 12pt floor that is
+                            // larger than the font itself.
+                            minimumPointSize: 6
                             minimumPixelSize: 6
-                            // A pixel size, not Kirigami's smallFont: that
-                            // one is set in points, and HorizontalFit only
-                            // shrinks from a pixel size.
-                            font.pixelSize: Math.round(Kirigami.Units.gridUnit * 0.62)
+                            font: Kirigami.Theme.defaultFont
                             color: Kirigami.Theme.textColor
                             opacity: effectCell.selected ? 1 : 0.6
                         }
@@ -697,7 +739,6 @@ PlasmoidItem {
 
             PlasmaComponents.Label {
                 text: "colour"
-                font: Kirigami.Theme.smallFont
                 opacity: 0.6
             }
 
@@ -742,13 +783,11 @@ PlasmoidItem {
                 PlasmaComponents.Label {
                     Layout.fillWidth: true
                     text: "speed"
-                    font: Kirigami.Theme.smallFont
                     opacity: 0.6
                 }
 
                 PlasmaComponents.Label {
                     text: (zone.target ? zone.target.speed_stop : "—") + " / " + root.speedStops
-                    font: Kirigami.Theme.smallFont
                 }
             }
 
