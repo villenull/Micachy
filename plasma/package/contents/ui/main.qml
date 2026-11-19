@@ -311,7 +311,11 @@ PlasmoidItem {
         // the first open stuck, and every later layout scrolled inside it.
         Layout.minimumHeight: fittedHeight
         Layout.preferredHeight: fittedHeight
-        Layout.maximumHeight: Kirigami.Units.gridUnit * 40
+        // And maximum, for the way back down. The minimum pushes the popup
+        // taller when zones are unlinked; nothing but a maximum pulls it
+        // back when they are linked again, and without one it stayed at the
+        // tallest height it had ever needed, mostly empty.
+        Layout.maximumHeight: fittedHeight
 
         // Stated outright rather than left to derive from the scroll view,
         // whose own width derives from this: that is a binding loop.
